@@ -1,0 +1,9 @@
+{
+  "editor.fontFamily": "CascadianCode NF",
+  "explorer.openEditors.visible": 0,
+  "terminal.integrated.shell.linux": "/bin/zsh",
+  "terminal.integrated.fontFamily": "CascadianCode NF",
+  "editor.formatOnSave": true,
+  "deno.autoFmtOnSave": true,
+  "deno.enable": true
+}

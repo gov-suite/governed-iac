@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "denoland.vscode-deno",
+    "christian-kohler.path-intellisense",
+    "coenraads.bracket-pair-colorizer-2",
+    "eamodio.gitlens",
+    "gruntfuggly.todo-tree",
+    "jebbs.plantuml",
+    "shd101wyy.markdown-preview-enhanced",
+    "visualstudioexptteam.vscodeintellicode",
+    "vscode-icons-team.vscode-icons"
+  ]
+}
