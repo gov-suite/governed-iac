@@ -1,24 +1,21 @@
-import { adminerConfigurator as adminer } from "../app/adminer.service.iacs.ts";
-import { jwtValidatorConfigurator as jwtValidator } from "../app/jwt-validator.service.iacs.ts";
-import { pgAdminConfigurator as pgAdmin } from "../app/pgAdmin.service.iacs.ts";
-import { portainerConfigurator as portainer } from "../app/portainer.service.iacs.ts";
-import { queryTreeConfigurator as queryTree } from "../app/queryTree.service.iacs.ts";
-import { swaggerConfigurator as swagger } from "../app/swagger-app.service.iacs.ts";
+import { adminerConfigurator as adminer } from "../app/adminer.service.giac.ts";
+import { jwtValidatorConfigurator as jwtValidator } from "../app/jwt-validator.service.giac.ts";
+import { pgAdminConfigurator as pgAdmin } from "../app/pgAdmin.service.giac.ts";
+import { portainerConfigurator as portainer } from "../app/portainer.service.giac.ts";
+import { queryTreeConfigurator as queryTree } from "../app/queryTree.service.giac.ts";
+import { swaggerConfigurator as swagger } from "../app/swagger-app.service.giac.ts";
 import { contextMgr as cm } from "../deps.ts";
-import { openTelemetryConfigurator as ot } from "../observability/openTelemetry.service.iacs.ts";
-import { elasticSearchConfigurator as elasticSearch } from "../persistence/elasticSearch-engine.service.iacs.ts";
-import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.iacs.ts";
-import { hasuraConfigurator as hasura } from "../proxy/rdbms/hasura.service.iacs.ts";
-import { messageDBConfigurator as messageDB } from "../proxy/rdbms/messageDB.service.iacs.ts";
-import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphile.service.iacs.ts";
-import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.iacs.ts";
-import { postHogConfigurator as postHog } from "../proxy/rdbms/postHog.service.iacs.ts";
-import { redisConfigurator as redis } from "../proxy/rdbms/redis.service.iacs.ts";
+import { openTelemetryConfigurator as ot } from "../observability/openTelemetry.service.giac.ts";
+import { elasticSearchConfigurator as elasticSearch } from "../persistence/elasticSearch-engine.service.giac.ts";
+import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
+import { hasuraConfigurator as hasura } from "../proxy/rdbms/hasura.service.giac.ts";
+import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphile.service.giac.ts";
+import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
   TypicalReverseProxyTargetValuesSupplier,
-} from "../typical.iacs.ts";
+} from "../typical.giac.ts";
 
 export class AutoBaaS extends TypicalComposeConfig {
   readonly servicesName = "middleware-rdbms-auto-baas";
@@ -38,12 +35,6 @@ export class AutoBaaS extends TypicalComposeConfig {
     );
     const hasuraSvc = hasura.configure(this, pgDbConn, pgDbeCommon);
     const postgRestSvc = postgREST.configure(this, pgDbConn, pgDbeCommon);
-    const redisSvc = redis.configure(this, this.common);
-    const postHogSvc = postHog.configure(
-      this,
-      pgDbConn,
-      { dependsOn: [pgDBE, redisSvc], ...this.common },
-    );
     const swaggerApp = swagger.configure(
       this,
       "http://" + rptvs.proxiedHostName(this, postgRestSvc) + "/",
@@ -54,7 +45,6 @@ export class AutoBaaS extends TypicalComposeConfig {
     const pgAdminApp = pgAdmin.configure(this, pgDbeCommon);
     const adminerApp = adminer.configure(this, pgDbeCommon);
     const queryTreeApp = queryTree.configure(this, pgDbeCommon);
-    const messageDBSvc = messageDB.configure(this, this.common);
     const portainerApp = portainer.configure(this, this.common);
     const jwtValidatorApp = jwtValidator.configure(
       this,
@@ -76,8 +66,6 @@ export class AutoBaaS extends TypicalComposeConfig {
           pgAdminApp,
           queryTreeApp,
           portainerApp,
-          redisSvc,
-          postHogSvc,
           jwtValidatorApp,
         ],
         ...this.common,

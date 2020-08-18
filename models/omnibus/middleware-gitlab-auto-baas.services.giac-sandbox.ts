@@ -1,14 +1,14 @@
-import { adminerConfigurator as adminer } from "../app/adminer.service.iacs.ts";
-import { swaggerConfigurator as swagger } from "../app/swagger-app.service.iacs.ts";
+import { adminerConfigurator as adminer } from "../app/adminer.service.giac.ts";
+import { swaggerConfigurator as swagger } from "../app/swagger-app.service.giac.ts";
 import { contextMgr as cm } from "../deps.ts";
-import { gitlabConfigurator as gitLab } from "../persistence/gitlab-engine.service.iacs.ts";
-import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.iacs.ts";
-import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.iacs.ts";
+import { gitlabConfigurator as gitLab } from "../persistence/gitlab-engine.service.giac.ts";
+import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
+import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
   TypicalReverseProxyTargetValuesSupplier,
-} from "../typical.iacs.ts";
+} from "../typical.giac.ts";
 
 export class AutoBaaS extends TypicalComposeConfig {
   readonly servicesName = "middleware-rdbms-auto-baas";

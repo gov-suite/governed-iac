@@ -4,7 +4,7 @@ import {
   ReverseProxyTarget,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export class QueryTreeServiceConfig extends TypicalImmutableServiceConfig
   implements ReverseProxyTarget {

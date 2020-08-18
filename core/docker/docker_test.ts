@@ -7,7 +7,7 @@ import {
   contextMgr as cm,
   specModule as sm,
 } from "../deps.ts";
-import * as iacModel from "../../models/omnibus/middleware-rdbms-api-auto-baas.services.iacs.ts";
+import * as iacModel from "../../models/omnibus/middleware-rdbms-api-auto-baas.services.giac.ts";
 import { ConfiguredServices } from "../service.ts";
 import { transformDockerArtifacts } from "./transform.ts";
 

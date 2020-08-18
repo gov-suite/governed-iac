@@ -3,12 +3,12 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../../deps.ts";
-import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.iacs.ts";
+import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
 import {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
 
 export class PostgRestServiceConfig extends TypicalImmutableServiceConfig {
   readonly image = "postgrest/postgrest";

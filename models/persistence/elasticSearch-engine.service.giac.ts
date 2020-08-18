@@ -7,7 +7,7 @@ import {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
-import { TypicalPersistenceServiceConfig } from "../typical.iacs.ts";
+import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
 
 export interface ElasticSearchConnectionSecrets {
   // TODO add authentication details (see PostgreSQL Engine as example)

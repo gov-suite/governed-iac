@@ -1,11 +1,11 @@
-import { pgAdminConfigurator as pgAdmin } from "../app/pgAdmin.service.iacs.ts";
+import { pgAdminConfigurator as pgAdmin } from "../app/pgAdmin.service.giac.ts";
 import { contextMgr as cm } from "../deps.ts";
-import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.iacs.ts";
+import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
   TypicalReverseProxyTargetValuesSupplier,
-} from "../typical.iacs.ts";
+} from "../typical.giac.ts";
 
 export class PostgreSqlDevl extends TypicalComposeConfig {
   readonly servicesName = "postgres-devl";

@@ -9,7 +9,7 @@ import {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export interface ImapServiceOptions {
   readonly baseDockerImage: string;

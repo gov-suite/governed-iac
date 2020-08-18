@@ -6,7 +6,7 @@ import {
   polyglotArtfNature,
   valueMgr as vm,
 } from "../deps.ts";
-import { TypicalPersistenceServiceConfig } from "../typical.iacs.ts";
+import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
 
 export interface PostgreSqlEngineOptions {
   readonly baseDockerImage: string;

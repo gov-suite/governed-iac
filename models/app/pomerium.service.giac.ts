@@ -1,5 +1,5 @@
 import { governedIaCCore as giac } from "../deps.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export class PomeriumServiceConfig extends TypicalImmutableServiceConfig {
   readonly image = "pomerium/pomerium:latest";

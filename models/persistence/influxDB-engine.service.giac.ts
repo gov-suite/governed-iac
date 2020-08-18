@@ -3,7 +3,7 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../deps.ts";
-import { TypicalPersistenceServiceConfig } from "../typical.iacs.ts";
+import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
 
 export interface InfluxDbConnectionSecrets {
   user: vm.TextValue;

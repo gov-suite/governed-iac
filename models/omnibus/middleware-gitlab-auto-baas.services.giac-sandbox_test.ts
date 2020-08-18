@@ -8,10 +8,10 @@ import {
   governedIaCCore as giac,
   specModule as sm,
 } from "../deps.ts";
-import * as iacModel from "./middleware-jwt-validator-auto-baas.services.iacs.ts";
+import * as iacModel from "./middleware-gitlab-auto-baas.services.giac-sandbox.ts";
 
 Deno.test(
-  "middleware-jwt-validator-auto-baas-graph Dockerfile and docker-compose.yaml Transformer",
+  "middleware-gitlab-auto-baas-graph Dockerfile and docker-compose.yaml Transformer",
   async () => {
     const ctx = cm.ctxFactory.projectContext(".");
     const p = new ap.InMemoryPersistenceHandler();
@@ -27,19 +27,14 @@ Deno.test(
       },
     );
 
-    assertEquals(p.resultsMap.size, 7);
-    assert(p.resultsMap.get("Dockerfile-postgreSqlEngine"));
-    assert(p.resultsMap.get("Dockerfile-postGraphile"));
-    assert(p.resultsMap.get("./initdb.d/000_postgresqlengine-initdb.sql"));
+    assertEquals(p.resultsMap.size, 2);
     assert(p.resultsMap.get("acme.json"));
-    assert(p.resultsMap.get("jwt-validator.sh"));
-    assert(p.resultsMap.get("init-permissions.sh"));
 
     const dockerCompose = p.resultsMap.get("docker-compose.yaml");
     assert(dockerCompose);
     assertEquals(
       ap.readFileAsTextFromPaths(
-        "jwt-validator-auto-baas.yaml.golden",
+        "gitlab-auto-baas-without-pomerium.yaml.golden",
         [
           ".",
           "./omnibus",

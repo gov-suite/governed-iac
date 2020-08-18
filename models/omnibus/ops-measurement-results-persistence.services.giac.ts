@@ -1,11 +1,11 @@
 import { contextMgr as cm } from "../deps.ts";
-import { influxDbConfigurator as influxDB } from "../persistence/influxDB-engine.service.iacs.ts";
-import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.iacs.ts";
+import { influxDbConfigurator as influxDB } from "../persistence/influxDB-engine.service.giac.ts";
+import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
   TypicalReverseProxyTargetValuesSupplier,
-} from "../typical.iacs.ts";
+} from "../typical.giac.ts";
 
 export class MeasurementResultsPersistence extends TypicalComposeConfig {
   readonly servicesName = "ops-measurement-results-persistence";

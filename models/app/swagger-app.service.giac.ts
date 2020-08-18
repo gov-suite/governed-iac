@@ -3,7 +3,7 @@ import {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export class SwaggerAppConfig extends TypicalImmutableServiceConfig {
   readonly image = "swaggerapi/swagger-ui";

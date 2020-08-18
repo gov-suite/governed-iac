@@ -10,8 +10,8 @@ import {
 import {
   InfluxDbConnectionConfig,
   InfluxDbConnectionSecrets,
-} from "../persistence/influxDB-engine.service.iacs.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+} from "../persistence/influxDB-engine.service.giac.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 interface TelegrafAgentConfig {
   readonly interval?: vm.TextValue;

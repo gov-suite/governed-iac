@@ -4,7 +4,7 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../deps.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export interface TraefikRouterOptions {
   readonly isTraefikRouterOptionsEnabled?: boolean;

@@ -1,6 +1,6 @@
 import { governedIaCCore as giac } from "../deps.ts";
 import { ReverseProxyTarget } from "../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export class PgAdminServiceConfig extends TypicalImmutableServiceConfig
   implements ReverseProxyTarget {

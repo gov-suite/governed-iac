@@ -1,10 +1,10 @@
 import { governedIaCCore as giac } from "../../deps.ts";
-import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.iacs.ts";
+import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
 import {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../../typical.iacs.ts";
+import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
 
 export class PostHogServiceConfig extends TypicalImmutableServiceConfig {
   readonly image = "posthog/posthog:latest";

@@ -1,10 +1,10 @@
 import { governedIaCCore as giac } from "../deps.ts";
-import { ElasticSearchEngineServiceConfig } from "../persistence/elasticSearch-engine.service.iacs.ts";
+import { ElasticSearchEngineServiceConfig } from "../persistence/elasticSearch-engine.service.giac.ts";
 import {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
-import { TypicalMutableServiceConfig } from "../typical.iacs.ts";
+import { TypicalMutableServiceConfig } from "../typical.giac.ts";
 
 export class OpenTelemetryConfig extends TypicalMutableServiceConfig {
   readonly image = "jaegertracing/all-in-one";
