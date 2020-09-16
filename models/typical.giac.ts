@@ -3,7 +3,7 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "./deps.ts";
-import {
+import type {
   ProxiedPort,
   ReverseProxyTarget,
   ReverseProxyTargetValuesSupplier,
@@ -18,7 +18,7 @@ export abstract class TypicalImmutableServiceConfig
   readonly isServiceConfig = true;
   readonly isReverseProxyTarget = true;
   readonly containerName: vm.TextValue;
-  readonly labels: { [k: string]: any };
+  readonly labels: { [k: string]: string | number | boolean };
   readonly environment: { [envVarName: string]: vm.Value };
   readonly restart: giac.dockerTr.ContainerRestartStrategy;
   readonly networks?: readonly giac.ServiceNetworkConfig[];
@@ -69,7 +69,7 @@ export abstract class TypicalImmutableServiceConfig
     return this;
   }
 
-  applyLabel(key: string, value: any): void {
+  applyLabel(key: string, value: string | boolean | number): void {
     this.labels[key] = value;
   }
 }
@@ -92,6 +92,7 @@ export abstract class TypicalComposeConfig extends giac.DefaultConfigContext
     super(
       ctx.projectPath,
       name ? name : (ctx: cm.Context): string => {
+        // deno-lint-ignore no-this-before-super
         return vm.resolveTextValue(ctx, this.servicesName);
       },
     );

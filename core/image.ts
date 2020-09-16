@@ -1,4 +1,8 @@
-import { artfPersist as ap, contextMgr as cm, valueMgr as vm } from "./deps.ts";
+import type {
+  artfPersist as ap,
+  contextMgr as cm,
+  valueMgr as vm,
+} from "./deps.ts";
 
 export type ImageName = vm.TextValue;
 export type ImageRegistryKey = vm.TextValue;
@@ -18,8 +22,8 @@ export interface Instructions {
   ): void;
 }
 
-export function isInstructions(c: any): c is Instructions {
-  return "isInstructions" in c;
+export function isInstructions(c: unknown): c is Instructions {
+  return c && typeof c === "object" && "isInstructions" in c;
 }
 
 export interface Image {
@@ -35,6 +39,6 @@ export interface Image {
   registryKeys(ctx: cm.Context): ImageRegistryKeys;
 }
 
-export function isImage(c: any): c is Image {
-  return "isImage" in c;
+export function isImage(c: unknown): c is Image {
+  return c && typeof c === "object" && "isImage" in c;
 }

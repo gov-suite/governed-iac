@@ -5,8 +5,8 @@ import {
   valueMgr as vm,
 } from "../deps.ts";
 import { graphFactory, GraphName } from "../graph.ts";
-import * as orch from "../orchestrator.ts";
-import { ConfiguredServices } from "../service.ts";
+import type * as orch from "../orchestrator.ts";
+import type { ConfiguredServices } from "../service.ts";
 import * as compose from "./compose.ts";
 
 export interface TransformOptions {

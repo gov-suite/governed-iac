@@ -1,13 +1,13 @@
 import { contextMgr as cm, valueMgr as vm } from "./deps.ts";
 import { EnvVarPlaceholders, envVarPlaceholdersFactory } from "./env.ts";
-import { ServiceConfig } from "./service.ts";
+import type { ServiceConfig } from "./service.ts";
 
 export interface ConfigContextSubscriptionHandler<T> {
   (ctx: ConfigContext, x: T): void;
 }
 
 export interface ConfigContextSubscriptionSelector<T> {
-  (x: any): x is T;
+  (x: unknown): x is T;
 }
 
 export type ConfigContextSubscriptionSelectors<T> =
@@ -27,8 +27,8 @@ export interface ConfigContext extends cm.ProjectContext {
   finalize(): void;
 }
 
-export function isConfigContext(c: any): c is ConfigContext {
-  return "isConfigContext" in c;
+export function isConfigContext(c: unknown): c is ConfigContext {
+  return c && typeof c === "object" && "isConfigContext" in c;
 }
 
 export class DefaultConfigContext implements ConfigContext {
@@ -42,7 +42,9 @@ export class DefaultConfigContext implements ConfigContext {
   );
   readonly configuredServices: ServiceConfig[] = [];
   readonly subscribers: [
+    // deno-lint-ignore no-explicit-any
     ConfigContextSubscriptionSelectors<any>,
+    // deno-lint-ignore no-explicit-any
     ConfigContextSubscriptionHandler<any>,
   ][] = [];
 

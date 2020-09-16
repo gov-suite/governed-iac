@@ -1,6 +1,6 @@
-import { governedIaCCore as giac } from "../../deps.ts";
-import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
-import {
+import type { governedIaCCore as giac } from "../../deps.ts";
+import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
+import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../../proxy/reverse-proxy.ts";

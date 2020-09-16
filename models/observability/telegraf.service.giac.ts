@@ -7,7 +7,7 @@ import {
   polyglotArtfNature,
   valueMgr as vm,
 } from "../deps.ts";
-import {
+import type {
   InfluxDbConnectionConfig,
   InfluxDbConnectionSecrets,
 } from "../persistence/influxDB-engine.service.giac.ts";

@@ -3,7 +3,7 @@ import {
   textInflect as infl,
   valueMgr as vm,
 } from "./deps.ts";
-import { ServiceConfig } from "./service.ts";
+import type { ServiceConfig } from "./service.ts";
 
 export class EnvVarPlaceholder implements vm.FutureInterpolatableValue {
   readonly isFutureInterpolatableValue = true;
@@ -16,6 +16,7 @@ export class EnvVarPlaceholder implements vm.FutureInterpolatableValue {
     readonly scope?: ServiceConfig,
   ) {}
 
+  // deno-lint-ignore no-explicit-any
   qualifiedName(ctx: cm.Context, ...args: any): string {
     const nameOnly = infl.toEnvVarCase(this.name);
     return this.scope
@@ -28,19 +29,21 @@ export class EnvVarPlaceholder implements vm.FutureInterpolatableValue {
       : nameOnly;
   }
 
+  // deno-lint-ignore no-explicit-any
   prepare(ctx: cm.Context, ...args: any): string {
     return this.defaultValue
       ? "${" +
         this.qualifiedName(ctx, ...args) +
         ":-" +
-        this.defaultValue.toString() +
+        // deno-lint-ignore no-explicit-any
+        (this.defaultValue as any).toString() +
         "}"
       : "${" + infl.toEnvVarCase(this.name) + "}";
   }
 }
 
 export interface EnvVarPlaceholderListener {
-  (evp: EnvVarPlaceholder, ...args: any): void;
+  (evp: EnvVarPlaceholder, ...args: (string | number | boolean)[]): void;
 }
 
 export class EnvVarPlaceholders {
@@ -55,7 +58,7 @@ export class EnvVarPlaceholders {
     purpose: vm.TextValue,
     defaultValue?: vm.Value,
     scope?: ServiceConfig,
-    ...args: any
+    ...args: (string | number | boolean)[]
   ): EnvVarPlaceholder {
     const dictKey = scope ? scope.serviceName.toString() + name : name;
     const defined = this.defined[dictKey];
@@ -77,7 +80,7 @@ export class EnvVarPlaceholders {
     name: string,
     purpose: vm.TextValue,
     scope?: ServiceConfig,
-    ...args: any
+    ...args: (string | number | boolean)[]
   ) {
     const dictKey = scope ? scope.serviceName.toString() + name : name;
     const defined = this.defined[dictKey];

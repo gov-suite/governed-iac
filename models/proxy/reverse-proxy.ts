@@ -34,8 +34,9 @@ export interface ReverseProxyTarget {
   readonly proxyTargetValues?: ReverseProxyTargetValuesSupplier;
 }
 
-export function isReverseProxyTarget(x: any): x is ReverseProxyTarget {
-  return "isServiceConfig" in x && "isReverseProxyTarget" in x;
+export function isReverseProxyTarget(x: unknown): x is ReverseProxyTarget {
+  return x && typeof x === "object" &&
+    ("isServiceConfig" in x && "isReverseProxyTarget" in x);
 }
 
 export type ProxiedPort = number | undefined;
@@ -52,9 +53,10 @@ export interface ReverseProxyTargetValuesSupplier {
 }
 
 export function isReverseProxyTargetValuesSupplier(
-  x: any,
+  x: unknown,
 ): x is ReverseProxyTargetValuesSupplier {
-  return "isReverseProxyTargetValuesSupplier" in x;
+  return x && typeof x === "object" &&
+    "isReverseProxyTargetValuesSupplier" in x;
 }
 
 export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
@@ -336,7 +338,7 @@ export const reverseProxyConfigurator = new (class {
         rpt: ReverseProxyTarget,
       ): void => {
         if (rpt.isProxyEnabled) {
-          var isHttps = isSecure ? true : false;
+          const isHttps = isSecure ? true : false;
           result.registerTarget(
             ctx,
             rpt,

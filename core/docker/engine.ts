@@ -2,9 +2,9 @@ import {
   contextMgr as cm,
   valueMgr as vm,
 } from "../deps.ts";
-import * as eng from "../engine.ts";
-import * as gr from "../graph.ts";
-import * as img from "../image.ts";
+import type * as eng from "../engine.ts";
+import type * as gr from "../graph.ts";
+import type * as img from "../image.ts";
 import * as svc from "../service.ts";
 import * as dc from "./compose.ts";
 import * as df from "./dockerfile.ts";
@@ -28,8 +28,8 @@ export enum ContainerRestartStrategy {
   UnlessStopped = "unless-stopped",
 }
 
-export function isDocker(c: any): c is Docker {
-  return "isDocker" in c;
+export function isDocker(c: unknown): c is Docker {
+  return c && typeof c === "object" && "isDocker" in c;
 }
 
 export type DockerEngineRelease = RegExp;

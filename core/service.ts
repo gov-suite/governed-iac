@@ -1,9 +1,13 @@
-import { ConfigContext } from "./context.ts";
-import { artfPersist as ap, contextMgr as cm, valueMgr as vm } from "./deps.ts";
-import { Dockerfile } from "./docker/dockerfile.ts";
-import * as de from "./docker/engine.ts";
-import { OrchestratorErrorReporter } from "./orchestrator.ts";
-import * as ports from "./ports.ts";
+import type { ConfigContext } from "./context.ts";
+import type {
+  artfPersist as ap,
+  contextMgr as cm,
+  valueMgr as vm,
+} from "./deps.ts";
+import type { Dockerfile } from "./docker/dockerfile.ts";
+import type * as de from "./docker/engine.ts";
+import type { OrchestratorErrorReporter } from "./orchestrator.ts";
+import type * as ports from "./ports.ts";
 
 export type ServiceEnvVarName = string;
 export type ServiceEnvVarValue = vm.Value;
@@ -14,8 +18,8 @@ export interface ServiceBuildConfig {
   tag?: vm.TextValue;
 }
 
-export function isServiceBuildConfig(o: any): o is ServiceBuildConfig {
-  return typeof o === "object" && "dockerFile" in o;
+export function isServiceBuildConfig(o: unknown): o is ServiceBuildConfig {
+  return o && typeof o === "object" && "dockerFile" in o;
 }
 
 export const DEFAULT_COMMON_NETWORK_NAME = "appliance";
@@ -45,9 +49,9 @@ export interface ServiceVolumeRetentionConfig {
 }
 
 export function isServiceVolumeMutable(
-  c: any,
+  c: unknown,
 ): c is ServiceVolumeRetentionConfig {
-  return "mutable" in c;
+  return c && typeof c === "object" && "mutable" in c;
 }
 
 export interface ServiceVolumeEngineStoreConfig
@@ -58,9 +62,10 @@ export interface ServiceVolumeEngineStoreConfig
 }
 
 export function isServiceVolumeEngineStoreConfig(
-  c: any,
+  c: unknown,
 ): c is ServiceVolumeEngineStoreConfig {
-  return "localVolName" in c && "containerFsPath" in c;
+  return c && typeof c === "object" &&
+    ("localVolName" in c && "containerFsPath" in c);
 }
 
 export interface ServiceVolumeLocalFsPathConfig
@@ -70,9 +75,10 @@ export interface ServiceVolumeLocalFsPathConfig
 }
 
 export function isServiceVolumeLocalFsPathConfig(
-  c: any,
+  c: unknown,
 ): c is ServiceVolumeLocalFsPathConfig {
-  return "localFsPath" in c && "containerFsPath" in c;
+  return c && typeof c === "object" &&
+    ("localFsPath" in c && "containerFsPath" in c);
 }
 
 export type ServiceVolumeConfig =
@@ -84,9 +90,9 @@ export interface ServiceEngineListenerConfig {
 }
 
 export function isServiceEngineListenerConfig(
-  c: any,
+  c: unknown,
 ): c is ServiceEngineListenerConfig {
-  return "isServiceEngineListenerConfig" in c;
+  return c && typeof c === "object" && "isServiceEngineListenerConfig" in c;
 }
 
 export function defaultServiceEngineListener() {
@@ -99,7 +105,7 @@ export interface ServiceConfigOptionals {
   readonly serviceName?: vm.TextValue;
   readonly containerName?: vm.TextValue;
   readonly hostName?: vm.TextValue;
-  readonly labels?: { [k: string]: any };
+  readonly labels?: { [k: string]: string | boolean | number };
   readonly engineListener?: ServiceEngineListenerConfig;
   readonly restart?: de.ContainerRestartStrategy;
   readonly environment?: { [envVarName: string]: vm.Value };
@@ -118,7 +124,7 @@ export interface ServiceConfig extends ServiceConfigOptionals {
   readonly serviceName: vm.TextValue;
   readonly image: vm.TextValue | ServiceBuildConfig;
 
-  applyLabel(key: string, value: any): void;
+  applyLabel(key: string, value: string | boolean | number): void;
   persistRelatedArtifacts?(
     ctx: ConfigContext,
     ph: ap.PersistenceHandler,
@@ -132,18 +138,18 @@ export interface ServiceConfig extends ServiceConfigOptionals {
   ): void;
 }
 
-export function isServiceConfig(c: any): c is ServiceConfig {
-  return "isServiceConfig" in c;
+export function isServiceConfig(c: unknown): c is ServiceConfig {
+  return c && typeof c === "object" && "isServiceConfig" in c;
 }
 
 export interface ServicesConfigConstructor {
-  new (ctx?: cm.ProjectContext, ...args: any): ConfiguredServices;
+  new (ctx?: cm.ProjectContext, ...args: unknown[]): ConfiguredServices;
 }
 
 export function isServicesConfigConstructor(
-  f: any,
+  f: unknown,
 ): f is ServicesConfigConstructor {
-  return typeof f === "function" &&
+  return f && typeof f === "function" &&
     (!!f.prototype && !!f.prototype.constructor.name);
 }
 

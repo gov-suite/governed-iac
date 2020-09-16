@@ -1,16 +1,16 @@
 import * as de from "./docker/engine.ts";
-import * as img from "./image.ts";
-import * as orch from "./orchestrator.ts";
-import { valueMgr as vm } from "./deps.ts";
+import type * as img from "./image.ts";
+import type * as orch from "./orchestrator.ts";
+import type { valueMgr as vm } from "./deps.ts";
 
 export type GraphName = vm.TextValue;
 
 export interface ImageHandler {
-  (graph: Graph, image: img.Image, ...args: any): void;
+  (graph: Graph, image: img.Image): void;
 }
 
 export interface OrchestratorHandler {
-  (graph: Graph, orch: orch.Orchestrator, ...args: any): void;
+  (graph: Graph, orch: orch.Orchestrator): void;
 }
 
 export interface Graph {
@@ -20,8 +20,8 @@ export interface Graph {
   forEachOrchestrator(fn: OrchestratorHandler): void;
 }
 
-export function isGraph(x: any): x is Graph {
-  return typeof x === "object" && "isGraph" in x;
+export function isGraph(x: unknown): x is Graph {
+  return x && typeof x === "object" && "isGraph" in x;
 }
 
 export class MultiEngineGraph implements Graph {

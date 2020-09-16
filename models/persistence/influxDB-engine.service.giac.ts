@@ -59,7 +59,7 @@ export class InfluxDbEngineServiceConfig
     ];
   }
 
-  applyLabel(key: string, value: any): void {
+  applyLabel(key: string, value: string | number | boolean): void {
     this.labels[key] = value;
   }
 

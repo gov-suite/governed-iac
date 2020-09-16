@@ -3,7 +3,7 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../../deps.ts";
-import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
+import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
 import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
 
 export class HasuraServiceConfig extends TypicalImmutableServiceConfig {

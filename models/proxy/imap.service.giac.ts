@@ -5,7 +5,7 @@ import {
   polyglotArtfNature,
   valueMgr as vm,
 } from "../deps.ts";
-import {
+import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";

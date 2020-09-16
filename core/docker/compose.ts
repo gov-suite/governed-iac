@@ -1,13 +1,15 @@
+// deno-lint-ignore-file
+
 import { stringify as toYAML } from "https://deno.land/std@v0.62.0/encoding/yaml.ts";
 import { assert } from "https://deno.land/std@v0.62.0/testing/asserts.ts";
-import { ConfigContext } from "../context.ts";
+import type { ConfigContext } from "../context.ts";
 import {
   artfPersist as ap,
   polyglotArtfNature,
   valueMgr as vm,
 } from "../deps.ts";
-import * as img from "../image.ts";
-import * as orch from "../orchestrator.ts";
+import type * as img from "../image.ts";
+import type * as orch from "../orchestrator.ts";
 import * as ports from "../ports.ts";
 import {
   ConfiguredServices,
@@ -20,7 +22,7 @@ import {
   ServiceNetworkConfig,
   ServiceVolumeEngineStoreConfig,
 } from "../service.ts";
-import * as de from "./engine.ts";
+import type * as de from "./engine.ts";
 
 export const DEFAULT_COMPOSE_FILE_NAME: orch.OrchestratorName =
   "docker-compose.yaml";
@@ -269,7 +271,7 @@ export class DockerCompose implements orch.Orchestrator {
             break;
 
           default:
-            envVars[key] = value.toString();
+            envVars[key] = (value as any).toString();
         }
       });
       service.environment = envVars;
@@ -338,7 +340,7 @@ export class DockerCompose implements orch.Orchestrator {
     if (sc.extraHosts) {
       const extraHosts: string[] = [];
       for (const c of sc.extraHosts) {
-        extraHosts.push(vm.resolveValue(ctx, c, sc, this).toString());
+        extraHosts.push((vm.resolveValue(ctx, c, sc, this) as any).toString());
       }
       service.extra_hosts = extraHosts;
     }
@@ -352,7 +354,7 @@ export class DockerCompose implements orch.Orchestrator {
     if (sc.command) {
       const command: string[] = [];
       for (const c of sc.command) {
-        command.push(vm.resolveValue(ctx, c, sc, this).toString());
+        command.push((vm.resolveValue(ctx, c, sc, this) as any).toString());
       }
       service.command = command;
     }

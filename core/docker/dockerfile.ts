@@ -1,14 +1,14 @@
-import {
+import type {
   artfPersist as ap,
   contextMgr as cm,
 } from "../deps.ts";
-import * as img from "../image.ts";
+import type * as img from "../image.ts";
 
-export function isDockerfile(c: any): c is Dockerfile {
-  return "isDockerfile" in c;
+export function isDockerfile(c: unknown): c is Dockerfile {
+  return c && typeof c === "object" && "isDockerfile" in c;
 }
 
-export const DEFAULT_FILE_NAME: string = "Dockerfile";
+export const DEFAULT_FILE_NAME = "Dockerfile";
 
 export class Dockerfile implements img.Image {
   readonly isImage: true = true;

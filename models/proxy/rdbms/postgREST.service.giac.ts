@@ -3,8 +3,8 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../../deps.ts";
-import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
-import {
+import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
+import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../../proxy/reverse-proxy.ts";
@@ -18,7 +18,7 @@ export class PostgRestServiceConfig extends TypicalImmutableServiceConfig {
   constructor(
     readonly conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
-    isGitLabServiceEnabled?: Boolean,
+    isGitLabServiceEnabled?: boolean,
   ) {
     super({ serviceName: "postgREST", ...optionals });
     if (isGitLabServiceEnabled) {
@@ -47,7 +47,7 @@ export const postgRestConfigurator = new (class {
     ctx: giac.ConfigContext,
     conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
-    isGitLabServiceEnabled?: Boolean,
+    isGitLabServiceEnabled?: boolean,
   ): PostgRestServiceConfig {
     return ctx.configured(
       new PostgRestServiceConfig(conn, optionals, isGitLabServiceEnabled),

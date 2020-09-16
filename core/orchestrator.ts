@@ -1,5 +1,5 @@
-import { ConfigContext } from "./context.ts";
-import { artfPersist as ap, valueMgr as vm } from "./deps.ts";
+import type { ConfigContext } from "./context.ts";
+import type { artfPersist as ap, valueMgr as vm } from "./deps.ts";
 
 export type OrchestratorName = vm.TextValue;
 export type OrchestratorRegistryKey = vm.TextValue;
@@ -21,6 +21,6 @@ export interface Orchestrator {
   registryKeys(ctx: ConfigContext): OrchestratorRegistryKeys;
 }
 
-export function isOrchestrator(c: any): c is Orchestrator {
-  return "isOrchestrator" in c;
+export function isOrchestrator(c: unknown): c is Orchestrator {
+  return c && typeof c === "object" && "isOrchestrator" in c;
 }

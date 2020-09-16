@@ -1,4 +1,4 @@
-import { ConfigContext } from "./context.ts";
+import type { ConfigContext } from "./context.ts";
 
 export type EngineName = string;
 export type EngineRegistryKey = string;
@@ -10,6 +10,6 @@ export interface Engine {
   registryKeys(ctx: ConfigContext): EngineRegistryKeys;
 }
 
-export function isEngine(c: any): c is Engine {
-  return "isEngine" in c;
+export function isEngine(c: unknown): c is Engine {
+  return c && typeof c === "object" && "isEngine" in c;
 }

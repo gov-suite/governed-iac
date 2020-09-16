@@ -6,9 +6,9 @@ import {
   polyglotArtfNature,
   valueMgr as vm,
 } from "../../deps.ts";
-import { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
+import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
 import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
-import { ReverseProxyTarget } from "../reverse-proxy.ts";
+import type { ReverseProxyTarget } from "../reverse-proxy.ts";
 
 export interface PostGraphileOptions {
   readonly retryOnInitFail?: boolean;

@@ -3,12 +3,13 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../deps.ts";
-import {
+import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
 import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
 
+// deno-lint-ignore no-empty-interface
 export interface ElasticSearchConnectionSecrets {
   // TODO add authentication details (see PostgreSQL Engine as example)
 }
@@ -63,7 +64,7 @@ export class ElasticSearchEngineServiceConfig
       })();
   }
 
-  applyLabel(key: string, value: any): void {
+  applyLabel(key: string, value: string | number | boolean): void {
     this.labels[key] = value;
   }
 

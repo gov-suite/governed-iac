@@ -1,4 +1,4 @@
-import { valueMgr as vm } from "./deps.ts";
+import type { valueMgr as vm } from "./deps.ts";
 
 export interface ServiceExposePortConfig {
   readonly isServiceExposePortConfig: true;
@@ -6,9 +6,9 @@ export interface ServiceExposePortConfig {
 }
 
 export function isServiceExposePortConfig(
-  c: any,
+  c: unknown,
 ): c is ServiceExposePortConfig {
-  return "isServiceExposePortConfig" in c;
+  return c && typeof c === "object" && "isServiceExposePortConfig" in c;
 }
 
 export interface ServicePublishPortConfig {
@@ -20,9 +20,9 @@ export interface ServicePublishPortConfig {
 }
 
 export function isServicePublishPortConfig(
-  c: any,
+  c: unknown,
 ): c is ServicePublishPortConfig {
-  return "isServicePublishPortConfig" in c;
+  return c && typeof c === "object" && "isServicePublishPortConfig" in c;
 }
 
 export type ServiceSinglePortConfig =
@@ -30,7 +30,7 @@ export type ServiceSinglePortConfig =
   | ServicePublishPortConfig;
 
 export function isServiceSinglePortConfig(
-  c: any,
+  c: unknown,
 ): c is ServiceSinglePortConfig {
   return isServiceExposePortConfig(c) || isServicePublishPortConfig(c);
 }

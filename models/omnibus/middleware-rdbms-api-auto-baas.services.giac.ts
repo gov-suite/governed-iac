@@ -4,7 +4,7 @@ import { pgAdminConfigurator as pgAdmin } from "../app/pgAdmin.service.giac.ts";
 import { portainerConfigurator as portainer } from "../app/portainer.service.giac.ts";
 import { queryTreeConfigurator as queryTree } from "../app/queryTree.service.giac.ts";
 import { swaggerConfigurator as swagger } from "../app/swagger-app.service.giac.ts";
-import { contextMgr as cm } from "../deps.ts";
+import type { contextMgr as cm } from "../deps.ts";
 import { openTelemetryConfigurator as ot } from "../observability/openTelemetry.service.giac.ts";
 import { elasticSearchConfigurator as elasticSearch } from "../persistence/elasticSearch-engine.service.giac.ts";
 import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";

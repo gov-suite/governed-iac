@@ -1,6 +1,6 @@
 import { governedIaCCore as giac } from "../deps.ts";
-import { ElasticSearchEngineServiceConfig } from "../persistence/elasticSearch-engine.service.giac.ts";
-import {
+import type { ElasticSearchEngineServiceConfig } from "../persistence/elasticSearch-engine.service.giac.ts";
+import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
@@ -31,7 +31,7 @@ export class OpenTelemetryConfig extends TypicalMutableServiceConfig {
       giac.portsFactory.publishSingle(16686),
       giac.portsFactory.publishSingle(14268),
       giac.portsFactory.publishSingle(
-        this.environment.COLLECTOR_ZIPKIN_HTTP_PORT,
+        this.environment.COLLECTOR_ZIPKIN_HTTP_PORT as number,
       ),
     ];
     this.proxyTargetValues =
