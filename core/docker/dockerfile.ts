@@ -1,7 +1,4 @@
-import type {
-  artfPersist as ap,
-  contextMgr as cm,
-} from "../deps.ts";
+import type { artfPersist as ap, contextMgr as cm } from "../deps.ts";
 import type * as img from "../image.ts";
 
 export function isDockerfile(c: unknown): c is Dockerfile {

@@ -1,7 +1,4 @@
-import {
-  contextMgr as cm,
-  valueMgr as vm,
-} from "../deps.ts";
+import { contextMgr as cm, valueMgr as vm } from "../deps.ts";
 import type * as eng from "../engine.ts";
 import type * as gr from "../graph.ts";
 import type * as img from "../image.ts";

@@ -1,10 +1,10 @@
-import { stringify } from "https://deno.land/std@v0.62.0/encoding/toml.ts";
-import { assert } from "https://deno.land/std@v0.62.0/testing/asserts.ts";
 import {
   artfPersist as ap,
   contextMgr as cm,
+  encodingTOML as toml,
   governedIaCCore as giac,
   polyglotArtfNature,
+  testingAsserts as ta,
   valueMgr as vm,
 } from "../deps.ts";
 import type {
@@ -49,9 +49,7 @@ export interface TelegrafOptions {
   readonly serviceName: vm.TextValue;
 }
 
-function createTelegrafConfig(opts: TelegrafOptions) {
-  let cname: any = opts.controlName;
-
+function createTelegrafConfig(ctx: cm.Context, opts: TelegrafOptions) {
   const telegrafConf = {
     "agent": {
       "interval": opts.telegrafAgentConfig?.interval,
@@ -81,7 +79,12 @@ function createTelegrafConfig(opts: TelegrafOptions) {
     },
   };
   return addTelegrafConfigMultilines(
-    replaceTelegrafConfigControlName(stringify(telegrafConf), cname),
+    replaceTelegrafConfigControlName(
+      toml.stringify(telegrafConf),
+      opts.controlName
+        ? vm.resolveTextValue(ctx, opts.controlName)
+        : "[controlName?]",
+    ),
   );
 }
 
@@ -91,10 +94,10 @@ function replaceTelegrafConfigControlName(telegrafConf: string, cname: string) {
 
 function addTelegrafConfigMultilines(template: string) {
   let config: string = "";
-  let maxlines = 25;
+  const maxlines = 25;
   var at = (template.split("\n", maxlines));
 
-  for (var index in at) {
+  for (const index in at) {
     at[index] += "\\n\\\n";
     config += at[index];
   }
@@ -116,7 +119,7 @@ export class TelegrafPluginServiceDockerfile implements giac.Instructions {
     ph: ap.PersistenceHandler,
     er?: giac.ImageErrorReporter,
   ): void {
-    assert(this.options?.appendPlugins);
+    ta.assert(this.options?.appendPlugins);
     const artifact = ph.createMutableTextArtifact(ctx, {
       nature: polyglotArtfNature.dockerfileArtifact,
     });
@@ -146,7 +149,7 @@ export class TelegrafPluginServiceDockerfile implements giac.Instructions {
           "FROM golang:latest",
           "WORKDIR /app",
           "RUN echo '\\n\\",
-          createTelegrafConfig(this.options),
+          this.options ? createTelegrafConfig(ctx, this.options) : "",
           "\\n'>>/app/telegraf-" + this.options?.controlName + "-influxv2.conf",
           "COPY --from=builder /go/src/github.com/influxdata/telegraf/telegraf /app",
           'ENTRYPOINT ["./telegraf"]',

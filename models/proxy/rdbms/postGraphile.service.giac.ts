@@ -1,9 +1,9 @@
-import { assert } from "https://deno.land/std@v0.62.0/testing/asserts.ts";
 import {
   artfPersist as ap,
   contextMgr as cm,
   governedIaCCore as giac,
   polyglotArtfNature,
+  testingAsserts as ta,
   valueMgr as vm,
 } from "../../deps.ts";
 import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
@@ -32,7 +32,7 @@ export class CustomPostGraphileServiceDockerfile implements giac.Instructions {
     ph: ap.PersistenceHandler,
     er?: giac.ImageErrorReporter,
   ): void {
-    assert(this.options?.appendPlugins);
+    ta.assert(this.options?.appendPlugins);
     const artifact = ph.createMutableTextArtifact(ctx, {
       nature: polyglotArtfNature.dockerfileArtifact,
     });
@@ -43,11 +43,13 @@ export class CustomPostGraphileServiceDockerfile implements giac.Instructions {
         [
           `FROM ${postGraphileConfigurator.baseDockerImage}`,
           'LABEL description="PostGraphile for Information Governance Suite (IGS) Entity Attribute Graph Specification (EAGS)."\n',
-          `RUN yarn add ${
-            this.options?.appendPlugins.join(
-              " ",
-            )
-          } --production=true --no-progress`,
+          this.options?.appendPlugins
+            ? `RUN yarn add ${
+              this.options?.appendPlugins.join(
+                " ",
+              )
+            } --production=true --no-progress`
+            : "",
         ].join("\n"),
       ),
     );

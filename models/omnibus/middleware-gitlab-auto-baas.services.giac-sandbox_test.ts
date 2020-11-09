@@ -1,12 +1,9 @@
 import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@v0.62.0/testing/asserts.ts";
-import {
   artfPersist as ap,
   contextMgr as cm,
   governedIaCCore as giac,
   specModule as sm,
+  testingAsserts as ta,
 } from "../deps.ts";
 import * as iacModel from "./middleware-gitlab-auto-baas.services.giac-sandbox.ts";
 
@@ -27,12 +24,12 @@ Deno.test(
       },
     );
 
-    assertEquals(p.resultsMap.size, 2);
-    assert(p.resultsMap.get("acme.json"));
+    ta.assertEquals(p.resultsMap.size, 2);
+    ta.assert(p.resultsMap.get("acme.json"));
 
     const dockerCompose = p.resultsMap.get("docker-compose.yaml");
-    assert(dockerCompose);
-    assertEquals(
+    ta.assert(dockerCompose);
+    ta.assertEquals(
       ap.readFileAsTextFromPaths(
         "gitlab-auto-baas-without-pomerium.yaml.golden",
         [

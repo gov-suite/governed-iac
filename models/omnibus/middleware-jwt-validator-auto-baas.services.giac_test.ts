@@ -1,12 +1,9 @@
 import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@v0.62.0/testing/asserts.ts";
-import {
   artfPersist as ap,
   contextMgr as cm,
   governedIaCCore as giac,
   specModule as sm,
+  testingAsserts as ta,
 } from "../deps.ts";
 import * as iacModel from "./middleware-jwt-validator-auto-baas.services.giac.ts";
 
@@ -27,17 +24,17 @@ Deno.test(
       },
     );
 
-    assertEquals(p.resultsMap.size, 7);
-    assert(p.resultsMap.get("Dockerfile-postgreSqlEngine"));
-    assert(p.resultsMap.get("Dockerfile-postGraphile"));
-    assert(p.resultsMap.get("./initdb.d/000_postgresqlengine-initdb.sql"));
-    assert(p.resultsMap.get("acme.json"));
-    assert(p.resultsMap.get("jwt-validator.sh"));
-    assert(p.resultsMap.get("init-permissions.sh"));
+    ta.assertEquals(p.resultsMap.size, 7);
+    ta.assert(p.resultsMap.get("Dockerfile-postgreSqlEngine"));
+    ta.assert(p.resultsMap.get("Dockerfile-postGraphile"));
+    ta.assert(p.resultsMap.get("./initdb.d/000_postgresqlengine-initdb.sql"));
+    ta.assert(p.resultsMap.get("acme.json"));
+    ta.assert(p.resultsMap.get("jwt-validator.sh"));
+    ta.assert(p.resultsMap.get("init-permissions.sh"));
 
     const dockerCompose = p.resultsMap.get("docker-compose.yaml");
-    assert(dockerCompose);
-    assertEquals(
+    ta.assert(dockerCompose);
+    ta.assertEquals(
       ap.readFileAsTextFromPaths(
         "jwt-validator-auto-baas.yaml.golden",
         [

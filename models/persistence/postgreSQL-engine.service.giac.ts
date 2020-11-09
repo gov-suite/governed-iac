@@ -1,9 +1,9 @@
-import { assert } from "https://deno.land/std@v0.62.0/testing/asserts.ts";
 import {
   artfPersist as ap,
   contextMgr as cm,
   governedIaCCore as giac,
   polyglotArtfNature,
+  testingAsserts as ta,
   valueMgr as vm,
 } from "../deps.ts";
 import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
@@ -340,7 +340,7 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     ph: ap.PersistenceHandler,
     er?: giac.ImageErrorReporter,
   ): void {
-    assert(this.options.postgreSqlConfigOptions);
+    ta.assert(this.options.postgreSqlConfigOptions);
     const artifact = ph.createMutableTextArtifact(ctx, {
       nature: polyglotArtfNature.dockerfileArtifact,
     });

@@ -1,11 +1,11 @@
 // deno-lint-ignore-file
 
-import { stringify as toYAML } from "https://deno.land/std@v0.62.0/encoding/yaml.ts";
-import { assert } from "https://deno.land/std@v0.62.0/testing/asserts.ts";
 import type { ConfigContext } from "../context.ts";
 import {
   artfPersist as ap,
+  encodingYAML as yaml,
   polyglotArtfNature,
+  testingAsserts as ta,
   valueMgr as vm,
 } from "../deps.ts";
 import type * as img from "../image.ts";
@@ -45,7 +45,10 @@ export interface DockerComposeOptions {
   readonly name: orch.OrchestratorName;
   readonly configuredServices: ConfiguredServices;
   readonly buildContext: vm.TextValue;
-  prePersistFinalizer?: (ctx: ConfigContext, composed: object) => object;
+  prePersistFinalizer?: (
+    ctx: ConfigContext,
+    composed: Record<string, unknown>,
+  ) => Record<string, unknown>;
   persistRelatedArtifacts?: PersistRelatedComposeArtifacts;
 }
 
@@ -109,7 +112,7 @@ export class DockerCompose implements orch.Orchestrator {
       ) +
         this.preamble(ctx).join("\n"),
     });
-    store.appendText(ctx, toYAML(composed));
+    store.appendText(ctx, yaml.stringify(composed));
     ph.persistTextArtifact(ctx, this.name, store);
 
     for (const build of this.builds) {
@@ -393,7 +396,7 @@ export class DockerCompose implements orch.Orchestrator {
         sc.image,
       );
       service.build = build;
-      assert(sc.containerName);
+      ta.assert(sc.containerName);
       service.image = (
         vm.resolveTextValue(ctx, sc.containerName, sc, this) + ":latest"
       ).toLocaleLowerCase(); // Docker requires lowercase image names
@@ -434,7 +437,7 @@ export class DockerCompose implements orch.Orchestrator {
   public toCompose(
     ctx: ConfigContext,
     er?: orch.OrchestratorErrorReporter,
-  ): object {
+  ): Record<string, unknown> {
     this.initConfig(ctx, er);
     let result: {
       version: string;
@@ -445,7 +448,7 @@ export class DockerCompose implements orch.Orchestrator {
       services: {},
     };
     this.options.configuredServices.forEachService((sc: ServiceConfig) => {
-      assert(sc.serviceName);
+      ta.assert(sc.serviceName);
       let service: { [k: string]: any } = {};
 
       this.toComposeServiceContainerName(ctx, sc, service);
@@ -488,7 +491,7 @@ export class DockerCompose implements orch.Orchestrator {
     if (this.volumes.length > 0) {
       result.volumes = {} as { [k: string]: {} };
       for (const v of this.volumes) {
-        assert(v.engineVolName);
+        ta.assert(v.engineVolName);
         const localName = vm.resolveTextValue(ctx, v.localVolName, v, this);
         if (!result.volumes[localName]) {
           result.volumes[localName] = {};
