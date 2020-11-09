@@ -45,6 +45,7 @@ export interface DockerComposeOptions {
   readonly name: orch.OrchestratorName;
   readonly configuredServices: ConfiguredServices;
   readonly buildContext: vm.TextValue;
+  readonly yamlOptions?: yaml.StringifyOptions;
   prePersistFinalizer?: (
     ctx: ConfigContext,
     composed: Record<string, unknown>,
@@ -112,7 +113,7 @@ export class DockerCompose implements orch.Orchestrator {
       ) +
         this.preamble(ctx).join("\n"),
     });
-    store.appendText(ctx, yaml.stringify(composed));
+    store.appendText(ctx, yaml.stringify(composed, this.options.yamlOptions));
     ph.persistTextArtifact(ctx, this.name, store);
 
     for (const build of this.builds) {

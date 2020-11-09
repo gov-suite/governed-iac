@@ -17,12 +17,9 @@ import {
 
 export interface DenoServiceOptions {
   readonly imageTag: string;
-  readonly serviceLaunchScriptName: string;
-  readonly servicePort: number;
-  readonly serviceLaunchScript: (
-    ctx: giac.ConfigContext,
-    ph: ap.PersistenceHandler,
-  ) => ap.MutableTextArtifact;
+  readonly port: number;
+  readonly commands: string[];
+  readonly dockerfileName: string;
 }
 
 export function denoServiceOptions(
@@ -32,30 +29,11 @@ export function denoServiceOptions(
 ): DenoServiceOptions {
   return {
     imageTag: override?.imageTag || "deno_service",
-    serviceLaunchScriptName: override?.serviceLaunchScriptName ||
-      "deno-service.sh",
-    serviceLaunchScript: override?.serviceLaunchScript ||
-      ((
-        ctx: giac.ConfigContext,
-        ph: ap.PersistenceHandler,
-      ): ap.MutableTextArtifact => {
-        const mta = ph.createMutableTextArtifact(
-          ctx,
-          { nature: polyglotArtfNature.shfileArtifact },
-        );
-        mta.appendText(
-          ctx,
-          vm.resolveTextValue(
-            ctx,
-            (override?.serviceLaunchCommands ||
-              ["# serviceLaunchScript or serviceLaunchCommand required"]).join(
-                "\n",
-              ),
-          ),
-        );
-        return mta;
-      }),
-    servicePort: override?.servicePort || 8163,
+    commands: [
+      "# serviceLaunchScript or serviceLaunchCommand required",
+    ],
+    port: override?.port || 8163,
+    dockerfileName: override?.dockerfileName || "Dockerfile",
     ...override,
   };
 }
@@ -65,6 +43,7 @@ export class DenoServiceConfig extends TypicalImmutableServiceConfig
   readonly image: vm.TextValue | giac.ServiceBuildConfig;
   readonly isProxyEnabled = true;
   readonly proxyTargetValues: ReverseProxyTargetValuesSupplier;
+  readonly ports: giac.ServiceExposePortConfig;
   readonly command: readonly vm.Value[];
 
   constructor(
@@ -82,7 +61,7 @@ export class DenoServiceConfig extends TypicalImmutableServiceConfig
     this.image = {
       tag: serviceOptions.imageTag,
       dockerFile: new giac.dockerTr.Dockerfile(
-        `Dockerfile-${this.serviceName}`,
+        serviceOptions.dockerfileName,
         new DenoServiceInstructions(serviceOptions),
       ),
     };
@@ -90,23 +69,18 @@ export class DenoServiceConfig extends TypicalImmutableServiceConfig
       new (class implementsReverseProxyTargetValuesSupplier {
         readonly isReverseProxyTargetValuesSupplier = true;
         proxiedPort(ctx: giac.ConfigContext): ProxiedPort {
-          return serviceOptions.servicePort;
+          return serviceOptions.port;
         }
       })();
-    this.command = [`/${this.serviceOptions.serviceLaunchScriptName}`];
-  }
-
-  persistRelatedArtifacts(
-    ctx: giac.ConfigContext,
-    ph: ap.PersistenceHandler,
-    er?: giac.OrchestratorErrorReporter,
-  ): void {
-    ph.persistTextArtifact(
-      ctx,
-      this.serviceOptions.serviceLaunchScriptName,
-      this.serviceOptions.serviceLaunchScript(ctx, ph),
-      { chmod: 0o755 },
-    );
+    this.command = serviceOptions.commands;
+    this.environment.SERVICE_PORT = serviceOptions.port;
+    this.ports = {
+      isServiceExposePortConfig: true,
+      target: ctx.envVars.requiredEnvVar(
+        "SERVICE_PORT",
+        `Service Port`,
+      ),
+    };
   }
 }
 
@@ -122,6 +96,7 @@ export class DenoServiceInstructions implements giac.Instructions {
       "RUN apk add --no-cache curl",
       "RUN curl -L https://deno.land/x/install/install.sh | sh",
       "FROM gcr.io/distroless/cc",
+      "ENV SERVICE_PORT",
       "COPY --from=0 /root/.deno/bin/deno /",
       "COPY . /",
     ].join("\n");

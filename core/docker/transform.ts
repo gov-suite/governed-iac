@@ -1,6 +1,7 @@
 import {
   artfPersist as ap,
   contextMgr as cm,
+  encodingYAML as yaml,
   specModule as sm,
   valueMgr as vm,
 } from "../deps.ts";
@@ -18,6 +19,7 @@ export interface TransformOptions {
 
 export interface DockerTransformOptions extends TransformOptions {
   readonly composeYamlName?: vm.TextValue;
+  readonly composeYamlOptions?: yaml.StringifyOptions;
   readonly composeBuildContext?: vm.TextValue;
   readonly persistRelatedArtifacts?: compose.PersistRelatedComposeArtifacts;
 }
@@ -41,6 +43,7 @@ export function transformDockerArtifacts(
     spec,
     persist,
     composeYamlName,
+    composeYamlOptions,
     composeBuildContext,
     persistRelatedArtifacts,
   }: DockerTransformOptions,
@@ -50,6 +53,7 @@ export function transformDockerArtifacts(
     configuredServices: spec.target,
     name: composeYamlName || compose.DEFAULT_COMPOSE_FILE_NAME,
     buildContext: composeBuildContext || projectCtx.projectPath,
+    yamlOptions: composeYamlOptions,
     persistRelatedArtifacts: persistRelatedArtifacts,
   });
   dc.persist(
