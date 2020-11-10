@@ -18,8 +18,9 @@ import {
 export interface DenoServiceOptions {
   readonly imageTag: string;
   readonly port: number;
-  readonly commands: string[];
+  readonly entryPoint: string[];
   readonly dockerfileName: string;
+  readonly cacheURLs: string[];
 }
 
 export function denoServiceOptions(
@@ -29,11 +30,10 @@ export function denoServiceOptions(
 ): DenoServiceOptions {
   return {
     imageTag: override?.imageTag || "deno_service",
-    commands: [
-      "# serviceLaunchScript or serviceLaunchCommand required",
-    ],
+    entryPoint: override?.entryPoint || ["ls -al"],
     port: override?.port || 8163,
     dockerfileName: override?.dockerfileName || "Dockerfile",
+    cacheURLs: override?.cacheURLs || [],
     ...override,
   };
 }
@@ -43,8 +43,6 @@ export class DenoServiceConfig extends TypicalImmutableServiceConfig
   readonly image: vm.TextValue | giac.ServiceBuildConfig;
   readonly isProxyEnabled = true;
   readonly proxyTargetValues: ReverseProxyTargetValuesSupplier;
-  readonly ports: giac.ServiceExposePortConfig;
-  readonly command: readonly vm.Value[];
 
   constructor(
     ctx: giac.ConfigContext,
@@ -72,15 +70,6 @@ export class DenoServiceConfig extends TypicalImmutableServiceConfig
           return serviceOptions.port;
         }
       })();
-    this.command = serviceOptions.commands;
-    this.environment.SERVICE_PORT = serviceOptions.port;
-    this.ports = {
-      isServiceExposePortConfig: true,
-      target: ctx.envVars.requiredEnvVar(
-        "SERVICE_PORT",
-        `Service Port`,
-      ),
-    };
   }
 }
 
@@ -90,16 +79,24 @@ export class DenoServiceInstructions implements giac.Instructions {
   constructor(readonly serviceOptions: DenoServiceOptions) {}
 
   configureInstructions(): string {
-    var value: string = "";
-    value = [
-      "FROM alpine:3.9.2",
-      "RUN apk add --no-cache curl",
+    const cache: string[] = [];
+    for (const c of this.serviceOptions.cacheURLs) {
+      cache.push(`RUN /root/.deno/bin/deno cache --unstable ${c}`);
+    }
+    return [
+      "FROM debian:stable-slim as build",
+      "ENV DEBIAN_FRONTEND noninteractive",
+      "RUN apt-get -qqq update && apt-get install -qqq curl unzip",
       "RUN curl -L https://deno.land/x/install/install.sh | sh",
-      "FROM gcr.io/distroless/cc",
-      "COPY --from=0 /root/.deno/bin/deno /",
-      "COPY . /",
+      "COPY deps.ts .",
+      ...cache,
+      "FROM gcr.io/distroless/cc-debian10",
+      "COPY --from=build /root/.deno/bin/deno /",
+      "COPY --from=build /root/.cache/deno /root/.cache/deno",
+      "COPY . .",
+      `EXPOSE ${this.serviceOptions.port}`,
+      `ENTRYPOINT ${JSON.stringify(this.serviceOptions.entryPoint)}`,
     ].join("\n");
-    return value;
   }
 
   persist(
