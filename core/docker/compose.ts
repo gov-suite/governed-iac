@@ -396,6 +396,26 @@ export class DockerCompose implements orch.Orchestrator {
         sc.image.dockerFile.imageName,
         sc.image,
       );
+      if (
+        sc.image.args &&
+        Object.getOwnPropertyNames(sc.image.args).length > 0
+      ) {
+        const argsVars: { [k: string]: string | number } = {};
+        Object.entries(sc.image.args).forEach((entry: [string, any]) => {
+          const key = entry[0];
+          const value = vm.resolveValue(ctx, entry[1], sc, this);
+          switch (typeof value) {
+            case "string":
+            case "number":
+              argsVars[key] = value;
+              break;
+
+            default:
+              argsVars[key] = (value as any).toString();
+          }
+        });
+        build.args = argsVars;
+      }
       service.build = build;
       ta.assert(sc.containerName);
       service.image = (

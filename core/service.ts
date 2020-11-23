@@ -16,6 +16,7 @@ export interface ServiceBuildConfig {
   dockerFile: Dockerfile;
   context?: vm.TextValue;
   tag?: vm.TextValue;
+  args?: { [argsVarName: string]: vm.TextValue };
 }
 
 export function isServiceBuildConfig(o: unknown): o is ServiceBuildConfig {

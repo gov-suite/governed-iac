@@ -19,12 +19,37 @@ export interface TraefikRouterOptions {
   readonly httpsRedirectPort?: number;
 }
 
+export interface TraefikCorsOptions {
+  readonly isTraefikCorsOptionsEnabled?: boolean;
+  readonly backendMiddlewares?: string;
+  readonly accessControlAllowHeaders?: string;
+  readonly accessControlAllowMethods?: string;
+  readonly accessControlAllowOrigin?: string;
+}
+
+export interface TraefikForwardAuthOptions {
+  readonly isTraefikForwardAuthOptionsEnabled?: boolean;
+  readonly backendMiddlewares?: string;
+  readonly trustForwardHeader?: boolean;
+  readonly address?: string;
+}
+
 export interface TraefikServiceConfigOptionals
   extends giac.ServiceConfigOptionals {
   readonly isTraefikServiceConfigOptionals: true;
   readonly isProxyEnabled: boolean;
-  readonly isSecure: boolean;
+  readonly isSecure?: boolean;
+  readonly isCors?: boolean;
+  readonly isForwardAuth?: boolean;
   readonly routerOptions?: TraefikRouterOptions;
+  readonly corsOptions?: TraefikCorsOptions;
+  readonly forwardAuthOptions?: TraefikForwardAuthOptions;
+}
+
+export interface ReverseProxyTargetOptions {
+  readonly isReverseProxyTargetOptionsEnabled: boolean;
+  readonly isCors?: boolean;
+  readonly isForwardAuth?: boolean;
 }
 
 export interface ReverseProxyTarget {
@@ -32,6 +57,7 @@ export interface ReverseProxyTarget {
   readonly isProxyEnabled: boolean;
   readonly proxyTargetConfig: giac.ServiceConfig;
   readonly proxyTargetValues?: ReverseProxyTargetValuesSupplier;
+  readonly proxyTargetOptions?: ReverseProxyTargetOptions;
 }
 
 export function isReverseProxyTarget(x: unknown): x is ReverseProxyTarget {
@@ -76,7 +102,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       | ReverseProxyTargetValuesSupplier
       | ReverseProxyTargetValuesSupplierConstructor,
     optionals?: giac.ServiceConfigOptionals,
-    isSecure?: boolean,
+    isSecure?: boolean | undefined,
     extraHosts?: vm.TextValue[],
   ) {
     super({ serviceName: "reverse-proxy", ...optionals });
@@ -182,7 +208,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
     const sc = rpt.proxyTargetConfig;
     const rpServiceName = this.targetService(ctx, rpt);
     if (rptOptionals) {
-      if (rptOptionals.isSecure == true) {
+      if (rptOptionals?.isSecure == true) {
         sc.applyLabel("traefik.enable", true);
         if (rptOptionals?.routerOptions) {
           const ho = rptOptionals?.routerOptions;
@@ -261,13 +287,72 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
           );
         }
       }
+      if (rptOptionals?.isCors == true) {
+        if (rptOptionals?.corsOptions) {
+          const co = rptOptionals?.corsOptions;
+          if (co.backendMiddlewares) {
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName +
+                ".middlewares",
+              rpServiceName + co.backendMiddlewares,
+            );
+          }
+          if (co.accessControlAllowHeaders) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + rpServiceName +
+                "-cors.headers.customresponseheaders.Access-Control-Allow-Headers",
+              co.accessControlAllowHeaders,
+            );
+          }
+          if (co.accessControlAllowMethods) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + rpServiceName +
+                "-cors.headers.customresponseheaders.Access-Control-Allow-Methods",
+              co.accessControlAllowMethods,
+            );
+          }
+          if (co.accessControlAllowOrigin) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + rpServiceName +
+                "-cors.headers.customresponseheaders.Access-Control-Allow-Origin",
+              co.accessControlAllowOrigin,
+            );
+          }
+        }
+      }
+      if (rptOptionals?.isForwardAuth == true) {
+        if (rptOptionals?.forwardAuthOptions) {
+          const fo = rptOptionals?.forwardAuthOptions;
+          if (fo.backendMiddlewares) {
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName +
+                "-auth.middlewares",
+              rpServiceName + fo.backendMiddlewares,
+            );
+          }
+          if (fo.trustForwardHeader) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + rpServiceName +
+                "-auth.forwardauth.trustForwardHeader",
+              fo.trustForwardHeader,
+            );
+          }
+          if (fo.address) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + rpServiceName +
+                "-auth.forwardauth.address",
+              fo.address,
+            );
+          }
+        }
+      }
     }
   }
 
   traefikRouterOptions(
     cfxContext: giac.ConfigContext,
     rpt: ReverseProxyTarget,
-    isSecure: boolean,
+    isSecure?: boolean,
   ): TraefikRouterOptions {
     return isSecure
       ? {
@@ -287,16 +372,54 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       };
   }
 
+  traefikCorsOptions(
+    isCors?: boolean,
+  ): TraefikCorsOptions {
+    return isCors
+      ? {
+        isTraefikCorsOptionsEnabled: true,
+        backendMiddlewares: "-cors",
+        accessControlAllowHeaders: "*",
+        accessControlAllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+        accessControlAllowOrigin: "*",
+      }
+      : {
+        isTraefikCorsOptionsEnabled: false,
+      };
+  }
+
+  traefikForwardAuthOptions(
+    isForwardAuth?: boolean,
+  ): TraefikForwardAuthOptions {
+    return isForwardAuth
+      ? {
+        isTraefikForwardAuthOptionsEnabled: true,
+        backendMiddlewares: "-auth",
+        trustForwardHeader: true,
+        address:
+          "https://${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/token",
+      }
+      : {
+        isTraefikForwardAuthOptionsEnabled: false,
+      };
+  }
+
   traefikServiceConfigOptionals(
     ctx: giac.ConfigContext,
     rpt: ReverseProxyTarget,
-    isSecure: boolean,
+    isSecure?: boolean,
+    isCors?: boolean,
+    isForwardAuth?: boolean,
   ): TraefikServiceConfigOptionals {
     const traefikServiceConfigOptionals: TraefikServiceConfigOptionals = {
       isTraefikServiceConfigOptionals: true,
       isProxyEnabled: true,
       isSecure: isSecure,
+      isCors: isCors,
+      isForwardAuth: isForwardAuth,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
+      corsOptions: this.traefikCorsOptions(isCors),
+      forwardAuthOptions: this.traefikForwardAuthOptions(isForwardAuth),
     };
     return traefikServiceConfigOptionals;
   }
@@ -338,12 +461,32 @@ export const reverseProxyConfigurator = new (class {
         rpt: ReverseProxyTarget,
       ): void => {
         if (rpt.isProxyEnabled) {
-          const isHttps = isSecure ? true : false;
-          result.registerTarget(
-            ctx,
-            rpt,
-            result.traefikServiceConfigOptionals(ctx, rpt, isHttps),
-          );
+          if (
+            rpt.proxyTargetOptions &&
+            rpt.proxyTargetOptions.isReverseProxyTargetOptionsEnabled
+          ) {
+            result.registerTarget(
+              ctx,
+              rpt,
+              result.traefikServiceConfigOptionals(
+                ctx,
+                rpt,
+                isSecure,
+                rpt.proxyTargetOptions.isCors,
+                rpt.proxyTargetOptions.isForwardAuth,
+              ),
+            );
+          } else {
+            result.registerTarget(
+              ctx,
+              rpt,
+              result.traefikServiceConfigOptionals(
+                ctx,
+                rpt,
+                isSecure,
+              ),
+            );
+          }
         }
       },
     );
