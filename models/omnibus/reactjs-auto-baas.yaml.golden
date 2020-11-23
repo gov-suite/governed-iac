@@ -2,7 +2,6 @@
 
 # Mutable volumes to be mindful of:
 #   postgresqlengine-storage: Irrecoverable user generated and transactional content
-#   redis-storage: Recoverable container configuration
 #   elasticSearchEngine-storage: Irrecoverable user generated search content
 #   portainer-storage: Recoverable container configuration
 #
@@ -11,7 +10,6 @@
 #   * POSTGRES_USER - Postgres database user, default (required)
 #   * POSTGRES_PASSWORD - Postgres user password (required)
 #   * POSTGRES_PUBL_PORT - Postgres database host port (required)
-#   * POSTHOG_SECRET_KEY - PostHog Secret key (default secret) (required)
 #   * GITLAB_JWKS_URI - GitLab JSON Web Key Set URL endpoint, eg:- https://git.netspective.io/oauth/discovery/keys (required)
 #   * HOST_MACHINE_IP - IP of host machine for using in traefik contianer as hosts entry. (required)
 #   * EP_EXECENV - Endpoints' execution environment name like sandbox, devl, test, demo, or prod (default sandbox)
@@ -110,35 +108,6 @@ services:
         Host(`${EP_EXECENV:-sandbox}.postgREST.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.postgREST.loadbalancer.server.port: 3000
-  redis:
-    container_name: middleware-rdbms-auto-baas_redis
-    image: 'redis:alpine'
-    restart: always
-    volumes:
-      - 'redis-storage:/data'
-    networks:
-      - network
-  postHog:
-    container_name: middleware-rdbms-auto-baas_postHog
-    image: 'posthog/posthog:latest'
-    restart: always
-    depends_on:
-      - postgresqlengine
-      - redis
-    environment:
-      IS_DOCKER: 'true'
-      DISABLE_SECURE_SSL_REDIRECT: 1
-      DATABASE_URL: >-
-        postgres://postgres:devl@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-5432}/devl
-      REDIS_URL: 'redis://redis:6379/'
-      SECRET_KEY: '${POSTHOG_SECRET_KEY:-secret}'
-    networks:
-      - network
-    labels:
-      traefik.http.routers.postHog.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postHog.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.enable: true
-      traefik.http.services.postHog.loadbalancer.server.port: 8000
   swagger-ui:
     container_name: middleware-rdbms-auto-baas_swagger-ui
     image: swaggerapi/swagger-ui
@@ -239,22 +208,6 @@ services:
         Host(`${EP_EXECENV:-sandbox}.queryTree.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.queryTree.loadbalancer.server.port: 80
-  message-db:
-    container_name: middleware-rdbms-auto-baas_message-db
-    build:
-      context: .
-      dockerfile: Dockerfile-postgreSqlEngine
-    image: 'middleware-rdbms-auto-baas_message-db:latest'
-    restart: always
-    environment:
-      DATABASE_NAME: message_store_test
-      PGUSER: postgres
-      PGPASSWORD: devl
-      PGHOST: middleware-rdbms-auto-baas_postgresqlengine
-    networks:
-      - network
-    command:
-      - bash -c  "/usr/src/message-db/database/install.sh"
   portainer:
     container_name: middleware-rdbms-auto-baas_portainer
     image: portainer/portainer
@@ -294,6 +247,28 @@ services:
         Host(`${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.jwt-validator.loadbalancer.server.port: 3000
+  reactJs:
+    container_name: middleware-rdbms-auto-baas_reactJs
+    build:
+      context: .
+      dockerfile: Dockerfile-reactJs
+      args:
+        GIT_REPO_USERNAME: '${GIT_REPO_USERNAME}'
+        GIT_REPO_TOKEN: '${GIT_REPO_TOKEN}'
+        UI_REPO: '${UI_REPO}'
+        NPM_AUTH_TOKEN: '${NPM_AUTH_TOKEN}'
+        POSTGRAPHILE_URL: '${POSTGRAPHILE_URL}'
+        GRAPHQL_PLM_URL: '${GRAPHQL_PLM_URL}'
+        GITLAB_AUTH_URL: '${GITLAB_AUTH_URL}'
+        GITLAB_AUTH_CLIENT_ID: '${GITLAB_AUTH_CLIENT_ID}'
+    image: 'middleware-rdbms-auto-baas_reactjs:latest'
+    restart: always
+    networks:
+      - network
+    labels:
+      traefik.http.routers.reactJs.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.reactJs.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.enable: true
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -314,9 +289,8 @@ services:
       - pgAdmin
       - queryTree
       - portainer
-      - redis
-      - postHog
       - jwt-validator
+      - reactJs
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     extra_hosts:
@@ -336,6 +310,5 @@ networks:
       name: middleware-rdbms-auto-baas
 volumes:
   postgresqlengine-storage: {}
-  redis-storage: {}
   elasticSearchEngine-storage: {}
   portainer-storage: {}

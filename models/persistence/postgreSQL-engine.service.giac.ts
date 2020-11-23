@@ -46,10 +46,10 @@ export class PostgreSqlEngineServiceConfig
   readonly command?: vm.Value[];
   readonly ports: giac.ServicePublishPortConfig;
   readonly isProxyEnabled = false;
+  readonly conn: PostgreSqlConnectionConfig;
 
   constructor(
     ctx: giac.ConfigContext,
-    readonly conn: PostgreSqlConnectionConfig,
     readonly engineOptions: PostgreSqlEngineOptions,
     scOptionals?: giac.ServiceConfigOptionals,
   ) {
@@ -64,18 +64,45 @@ export class PostgreSqlEngineServiceConfig
       }
       : engineOptions.baseDockerImage;
 
+    this.environment.POSTGRES_DB = "${POSTGRES_DB}";
+    this.environment.POSTGRES_USER = "${POSTGRES_USER}";
+    this.environment.POSTGRES_PASSWORD = "${POSTGRES_PASSWORD}";
+    this.environment.POSTGRES_PUBL_PORT = "${POSTGRES_PUBL_PORT}";
+    ctx.envVars.requiredEnvVar(
+      "POSTGRES_DB",
+      "Postgres database name",
+    );
+    ctx.envVars.requiredEnvVar(
+      "POSTGRES_USER",
+      "Postgres database user, default",
+    );
+    ctx.envVars.requiredEnvVar(
+      "POSTGRES_PASSWORD",
+      "Postgres user password",
+    );
+    ctx.envVars.requiredEnvVar(
+      "POSTGRES_PUBL_PORT",
+      "Postgres database host port",
+    );
     this.ports = giac.portsFactory.publishSingle(
       ctx.envVars.defaultEnvVar(
         "PUBL_PORT",
         "PostgreSQL Engine published port",
-        conn.hostPort,
+        "${POSTGRES_PUBL_PORT}",
         this,
       ),
-      conn.hostPort,
+      5432,
     );
-    this.environment.POSTGRES_DB = conn.dbName;
-    this.environment.POSTGRES_USER = conn.secrets.user;
-    this.environment.POSTGRES_PASSWORD = conn.secrets.password;
+    this.conn = postgreSqlConfigurator.configureConn(
+      "${POSTGRES_DB}",
+      {
+        user: "${POSTGRES_USER}",
+        password: "${POSTGRES_PASSWORD}",
+      },
+      "public",
+      this.serviceName,
+      this.ports.published,
+    );
     this.initDbVolume = {
       localFsPath: (ctx: cm.Context) => {
         const pp = cm.isProjectContext(ctx) ? ctx.projectPath : ".";
@@ -403,14 +430,9 @@ export const postgreSqlConfigurator = new (class {
     optionals?: giac.ServiceConfigOptionals,
     postgreSqlConfigOptions?: PostgreSqlConfigOptions,
   ): PostgreSqlEngineServiceConfig {
-    const conn = this.configureConn("devl", {
-      user: "postgres",
-      password: "devl",
-    });
     return ctx.configured(
       new PostgreSqlEngineServiceConfig(
         ctx,
-        conn,
         {
           baseDockerImage: "supabase/postgres",
           postgreSqlConfigOptions: {

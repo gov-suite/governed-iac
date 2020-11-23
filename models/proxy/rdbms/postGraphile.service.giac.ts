@@ -8,7 +8,10 @@ import {
 } from "../../deps.ts";
 import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
 import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
-import type { ReverseProxyTarget } from "../reverse-proxy.ts";
+import type {
+  ReverseProxyTarget,
+  ReverseProxyTargetOptions,
+} from "../reverse-proxy.ts";
 
 export interface PostGraphileOptions {
   readonly retryOnInitFail?: boolean;
@@ -63,12 +66,14 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
   readonly isProxyEnabled = true;
   readonly image: vm.TextValue | giac.ServiceBuildConfig;
   readonly command?: readonly vm.Value[];
+  readonly reverseProxyTargetOptions?: ReverseProxyTargetOptions | undefined;
 
   constructor(
     ctx: giac.ConfigContext,
     readonly conn: PostgreSqlConnectionConfig,
     readonly options?: PostGraphileOptions,
     scOptionals?: giac.ServiceConfigOptionals,
+    proxyTargetOptions?: ReverseProxyTargetOptions,
   ) {
     super({ serviceName: "postGraphile", ...scOptionals });
     this.image = options?.appendPlugins
@@ -80,6 +85,19 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
       }
       : postGraphileConfigurator.baseDockerImage;
     this.command = this.createCommandsFromParams();
+    this.reverseProxyTargetOptions = proxyTargetOptions;
+  }
+
+  get proxyTargetOptions(): ReverseProxyTargetOptions {
+    if (this.reverseProxyTargetOptions) {
+      return this.reverseProxyTargetOptions;
+    } else {
+      return {
+        isReverseProxyTargetOptionsEnabled: false,
+        isCors: false,
+        isForwardAuth: false,
+      };
+    }
   }
 
   get proxyTargetConfig(): giac.ServiceConfig {
@@ -89,6 +107,7 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
   protected createCommandsFromParams(): vm.Value[] {
     const result: vm.Value[] = [];
 
+    result.push("--cors");
     result.push("--connection", (ctx: cm.Context): string => {
       return vm.resolveTextValue(ctx, this.conn.url);
     });
@@ -141,9 +160,16 @@ export const postGraphileConfigurator = new (class {
     conn: PostgreSqlConnectionConfig,
     options: PostGraphileOptions = this.defaultPostgraphileOptions,
     scOptionals?: giac.ServiceConfigOptionals,
+    proxyTargetOptions?: ReverseProxyTargetOptions,
   ): PostGraphileServiceConfig {
     return ctx.configured(
-      new PostGraphileServiceConfig(ctx, conn, options, scOptionals),
+      new PostGraphileServiceConfig(
+        ctx,
+        conn,
+        options,
+        scOptionals,
+        proxyTargetOptions,
+      ),
     );
   }
 })();
