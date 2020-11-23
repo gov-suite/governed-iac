@@ -255,12 +255,6 @@ services:
       args:
         GIT_REPO_USERNAME: '${GIT_REPO_USERNAME}'
         GIT_REPO_TOKEN: '${GIT_REPO_TOKEN}'
-        UI_REPO: '${UI_REPO}'
-        NPM_AUTH_TOKEN: '${NPM_AUTH_TOKEN}'
-        POSTGRAPHILE_URL: '${POSTGRAPHILE_URL}'
-        GRAPHQL_PLM_URL: '${GRAPHQL_PLM_URL}'
-        GITLAB_AUTH_URL: '${GITLAB_AUTH_URL}'
-        GITLAB_AUTH_CLIENT_ID: '${GITLAB_AUTH_CLIENT_ID}'
     image: 'middleware-rdbms-auto-baas_reactjs:latest'
     restart: always
     networks:
