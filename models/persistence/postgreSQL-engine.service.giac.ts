@@ -64,40 +64,41 @@ export class PostgreSqlEngineServiceConfig
       }
       : engineOptions.baseDockerImage;
 
-    this.environment.POSTGRES_DB = "${POSTGRES_DB}";
-    this.environment.POSTGRES_USER = "${POSTGRES_USER}";
-    this.environment.POSTGRES_PASSWORD = "${POSTGRES_PASSWORD}";
-    this.environment.POSTGRES_PUBL_PORT = "${POSTGRES_PUBL_PORT}";
+    this.environment.POSTGRESQLENGINE_DB = "${POSTGRESQLENGINE_DB}";
+    this.environment.POSTGRESQLENGINE_USER = "${POSTGRESQLENGINE_USER}";
+    this.environment.POSTGRESQLENGINE_PASSWORD = "${POSTGRESQLENGINE_PASSWORD}";
+    this.environment.POSTGRESQLENGINE_PUBL_PORT =
+      "${POSTGRESQLENGINE_PUBL_PORT}";
     ctx.envVars.requiredEnvVar(
-      "POSTGRES_DB",
+      "POSTGRESQLENGINE_DB",
       "Postgres database name",
     );
     ctx.envVars.requiredEnvVar(
-      "POSTGRES_USER",
+      "POSTGRESQLENGINE_USER",
       "Postgres database user, default",
     );
     ctx.envVars.requiredEnvVar(
-      "POSTGRES_PASSWORD",
+      "POSTGRESQLENGINE_PASSWORD",
       "Postgres user password",
     );
     ctx.envVars.requiredEnvVar(
-      "POSTGRES_PUBL_PORT",
+      "POSTGRESQLENGINE_PUBL_PORT",
       "Postgres database host port",
     );
     this.ports = giac.portsFactory.publishSingle(
       ctx.envVars.defaultEnvVar(
         "PUBL_PORT",
         "PostgreSQL Engine published port",
-        "${POSTGRES_PUBL_PORT}",
+        "${POSTGRESQLENGINE_PUBL_PORT}",
         this,
       ),
       5432,
     );
     this.conn = postgreSqlConfigurator.configureConn(
-      "${POSTGRES_DB}",
+      "${POSTGRESQLENGINE_DB}",
       {
-        user: "${POSTGRES_USER}",
-        password: "${POSTGRES_PASSWORD}",
+        user: "${POSTGRESQLENGINE_USER}",
+        password: "${POSTGRESQLENGINE_PASSWORD}",
       },
       "public",
       this.serviceName,
