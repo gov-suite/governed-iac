@@ -90,6 +90,7 @@ services:
       traefik.http.routers.hasura.rule: >-
         Host(`${EP_EXECENV:-sandbox}.hasura.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
+      traefik.http.services.hasura.loadbalancer.server.port: 8080
   postgREST:
     container_name: middleware-rdbms-auto-baas_postgREST
     image: postgrest/postgrest
