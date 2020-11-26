@@ -296,16 +296,29 @@ export class DockerCompose implements orch.Orchestrator {
       for (const vol of sc.volumes) {
         const readOnly = isServiceVolumeMutable(vol) ? "" : ":ro";
         if (isServiceVolumeLocalFsPathConfig(vol)) {
-          volumes.push(
-            `${vm.resolveTextValue(ctx, vol.localFsPath, this)}:${
-              vm.resolveTextValue(
-                ctx,
-                vol.containerFsPath,
-                sc,
-                this,
-              )
-            }${readOnly}`,
-          );
+          if (vol.isReadOnly == false) {
+            volumes.push(
+              `${vm.resolveTextValue(ctx, vol.localFsPath, this)}:${
+                vm.resolveTextValue(
+                  ctx,
+                  vol.containerFsPath,
+                  sc,
+                  this,
+                )
+              }`,
+            );
+          } else {
+            volumes.push(
+              `${vm.resolveTextValue(ctx, vol.localFsPath, this)}:${
+                vm.resolveTextValue(
+                  ctx,
+                  vol.containerFsPath,
+                  sc,
+                  this,
+                )
+              }${readOnly}`,
+            );
+          }
         } else if (isServiceVolumeEngineStoreConfig(vol)) {
           volumes.push(
             `${

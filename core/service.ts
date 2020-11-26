@@ -73,6 +73,7 @@ export interface ServiceVolumeLocalFsPathConfig
   extends ServiceVolumeRetentionConfig {
   readonly localFsPath: vm.TextValue;
   readonly containerFsPath: vm.TextValue;
+  readonly isReadOnly?: boolean;
 }
 
 export function isServiceVolumeLocalFsPathConfig(

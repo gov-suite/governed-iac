@@ -1,5 +1,6 @@
 import {
   artfPersist as ap,
+  contextMgr as cm,
   documentArtfNature,
   governedIaCCore as giac,
   valueMgr as vm,
@@ -95,6 +96,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
   readonly proxySupplier: ReverseProxyTargetValuesSupplier;
   readonly volumes?: giac.ServiceVolumeConfig[];
   readonly extraHosts?: vm.TextValue[];
+  readonly initDbVolume?: giac.ServiceVolumeLocalFsPathConfig;
 
   constructor(
     ctx: giac.ConfigContext,
@@ -139,6 +141,17 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
         "--certificatesResolvers.default.acme.httpchallenge=true",
         "--certificatesresolvers.default.acme.httpchallenge.entrypoint=http",
         "--entryPoints.https.forwardedHeaders.insecure",
+      ];
+      this.initDbVolume = {
+        localFsPath: (ctx: cm.Context) => {
+          const pp = cm.isProjectContext(ctx) ? ctx.projectPath : ".";
+          return `${pp}/acme.json`;
+        },
+        containerFsPath: "/acme.json",
+        isReadOnly: false,
+      };
+      this.volumes = [
+        this.initDbVolume,
       ];
     } else {
       this.command = [
