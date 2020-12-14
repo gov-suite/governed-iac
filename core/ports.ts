@@ -1,15 +1,13 @@
 import type { valueMgr as vm } from "./deps.ts";
-
+import { safety } from "./deps.ts";
 export interface ServiceExposePortConfig {
   readonly isServiceExposePortConfig: true;
   readonly target: vm.NumericValue;
 }
 
-export function isServiceExposePortConfig(
-  c: unknown,
-): c is ServiceExposePortConfig {
-  return c && typeof c === "object" && "isServiceExposePortConfig" in c;
-}
+export const isServiceExposePortConfig = safety.typeGuard<
+  ServiceExposePortConfig
+>("isServiceExposePortConfig");
 
 export interface ServicePublishPortConfig {
   readonly isServicePublishPortConfig: true;
@@ -19,11 +17,9 @@ export interface ServicePublishPortConfig {
   readonly mode?: "host" | "ingress";
 }
 
-export function isServicePublishPortConfig(
-  c: unknown,
-): c is ServicePublishPortConfig {
-  return c && typeof c === "object" && "isServicePublishPortConfig" in c;
-}
+export const isServicePublishPortConfig = safety.typeGuard<
+  ServicePublishPortConfig
+>("isServicePublishPortConfig");
 
 export type ServiceSinglePortConfig =
   | ServiceExposePortConfig

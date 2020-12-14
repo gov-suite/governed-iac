@@ -9,7 +9,7 @@ import * as iacModel from "./middleware-jwt-validator-auto-baas.services.giac.ts
 
 Deno.test(
   "middleware-jwt-validator-auto-baas-graph Dockerfile and docker-compose.yaml Transformer",
-  async () => {
+  () => {
     const ctx = cm.ctxFactory.projectContext(".");
     const p = new ap.InMemoryPersistenceHandler();
     giac.dockerTr.transformDockerArtifacts(

@@ -9,7 +9,7 @@ import * as iacModel from "./middleware-gitlab-auto-baas.services.giac-sandbox.t
 
 Deno.test(
   "middleware-gitlab-auto-baas-graph Dockerfile and docker-compose.yaml Transformer",
-  async () => {
+  () => {
     const ctx = cm.ctxFactory.projectContext(".");
     const p = new ap.InMemoryPersistenceHandler();
     giac.dockerTr.transformDockerArtifacts(

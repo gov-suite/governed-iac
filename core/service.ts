@@ -4,6 +4,7 @@ import type {
   contextMgr as cm,
   valueMgr as vm,
 } from "./deps.ts";
+import { safety } from "./deps.ts";
 import type { Dockerfile } from "./docker/dockerfile.ts";
 import type * as de from "./docker/engine.ts";
 import type { OrchestratorErrorReporter } from "./orchestrator.ts";
@@ -19,9 +20,9 @@ export interface ServiceBuildConfig {
   args?: { [argsVarName: string]: vm.TextValue };
 }
 
-export function isServiceBuildConfig(o: unknown): o is ServiceBuildConfig {
-  return o && typeof o === "object" && "dockerFile" in o;
-}
+export const isServiceBuildConfig = safety.typeGuard<ServiceBuildConfig>(
+  "dockerFile",
+);
 
 export const DEFAULT_COMMON_NETWORK_NAME = "appliance";
 
@@ -49,11 +50,9 @@ export interface ServiceVolumeRetentionConfig {
   mutable?: ServiceVolumeMutable;
 }
 
-export function isServiceVolumeMutable(
-  c: unknown,
-): c is ServiceVolumeRetentionConfig {
-  return c && typeof c === "object" && "mutable" in c;
-}
+export const isServiceVolumeMutable = safety.typeGuard<
+  ServiceVolumeRetentionConfig
+>("mutable");
 
 export interface ServiceVolumeEngineStoreConfig
   extends ServiceVolumeRetentionConfig {
@@ -62,12 +61,9 @@ export interface ServiceVolumeEngineStoreConfig
   readonly containerFsPath: vm.TextValue;
 }
 
-export function isServiceVolumeEngineStoreConfig(
-  c: unknown,
-): c is ServiceVolumeEngineStoreConfig {
-  return c && typeof c === "object" &&
-    ("localVolName" in c && "containerFsPath" in c);
-}
+export const isServiceVolumeEngineStoreConfig = safety.typeGuard<
+  ServiceVolumeEngineStoreConfig
+>("localVolName", "containerFsPath");
 
 export interface ServiceVolumeLocalFsPathConfig
   extends ServiceVolumeRetentionConfig {
@@ -76,12 +72,9 @@ export interface ServiceVolumeLocalFsPathConfig
   readonly isReadOnly?: boolean;
 }
 
-export function isServiceVolumeLocalFsPathConfig(
-  c: unknown,
-): c is ServiceVolumeLocalFsPathConfig {
-  return c && typeof c === "object" &&
-    ("localFsPath" in c && "containerFsPath" in c);
-}
+export const isServiceVolumeLocalFsPathConfig = safety.typeGuard<
+  ServiceVolumeLocalFsPathConfig
+>("localFsPath", "containerFsPath");
 
 export type ServiceVolumeConfig =
   | ServiceVolumeEngineStoreConfig
@@ -91,11 +84,9 @@ export interface ServiceEngineListenerConfig {
   readonly isServiceEngineListenerConfig: true;
 }
 
-export function isServiceEngineListenerConfig(
-  c: unknown,
-): c is ServiceEngineListenerConfig {
-  return c && typeof c === "object" && "isServiceEngineListenerConfig" in c;
-}
+export const isServiceEngineListenerConfig = safety.typeGuard<
+  ServiceEngineListenerConfig
+>("isServiceEngineListenerConfig");
 
 export function defaultServiceEngineListener() {
   return new (class implements ServiceEngineListenerConfig {
@@ -140,9 +131,9 @@ export interface ServiceConfig extends ServiceConfigOptionals {
   ): void;
 }
 
-export function isServiceConfig(c: unknown): c is ServiceConfig {
-  return c && typeof c === "object" && "isServiceConfig" in c;
-}
+export const isServiceConfig = safety.typeGuard<ServiceConfig>(
+  "isServiceConfig",
+);
 
 export interface ServicesConfigConstructor {
   new (ctx?: cm.ProjectContext, ...args: unknown[]): ConfiguredServices;
@@ -151,8 +142,10 @@ export interface ServicesConfigConstructor {
 export function isServicesConfigConstructor(
   f: unknown,
 ): f is ServicesConfigConstructor {
-  return f && typeof f === "function" &&
-    (!!f.prototype && !!f.prototype.constructor.name);
+  if (f && typeof f === "function") {
+    return (!!f.prototype && !!f.prototype.constructor.name);
+  }
+  return false;
 }
 
 export interface ConfiguredServices {

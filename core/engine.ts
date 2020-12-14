@@ -1,4 +1,5 @@
 import type { ConfigContext } from "./context.ts";
+import { safety } from "./deps.ts";
 
 export type EngineName = string;
 export type EngineRegistryKey = string;
@@ -10,6 +11,4 @@ export interface Engine {
   registryKeys(ctx: ConfigContext): EngineRegistryKeys;
 }
 
-export function isEngine(c: unknown): c is Engine {
-  return c && typeof c === "object" && "isEngine" in c;
-}
+export const isEngine = safety.typeGuard<Engine>("isEngine");

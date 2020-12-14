@@ -1,9 +1,8 @@
 import type { artfPersist as ap, contextMgr as cm } from "../deps.ts";
+import { safety } from "../deps.ts";
 import type * as img from "../image.ts";
 
-export function isDockerfile(c: unknown): c is Dockerfile {
-  return c && typeof c === "object" && "isDockerfile" in c;
-}
+export const isDockerfile = safety.typeGuard<Dockerfile>("isDockerfile");
 
 export const DEFAULT_FILE_NAME = "Dockerfile";
 

@@ -3,6 +3,7 @@ import {
   contextMgr as cm,
   documentArtfNature,
   governedIaCCore as giac,
+  safety,
   valueMgr as vm,
 } from "../deps.ts";
 import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
@@ -61,10 +62,9 @@ export interface ReverseProxyTarget {
   readonly proxyTargetOptions?: ReverseProxyTargetOptions;
 }
 
-export function isReverseProxyTarget(x: unknown): x is ReverseProxyTarget {
-  return x && typeof x === "object" &&
-    ("isServiceConfig" in x && "isReverseProxyTarget" in x);
-}
+export const isReverseProxyTarget = safety.typeGuard<ReverseProxyTarget>(
+  "isReverseProxyTarget",
+);
 
 export type ProxiedPort = number | undefined;
 
@@ -79,12 +79,9 @@ export interface ReverseProxyTargetValuesSupplier {
   proxiedPort?(ctx: giac.ConfigContext, sc: giac.ServiceConfig): ProxiedPort;
 }
 
-export function isReverseProxyTargetValuesSupplier(
-  x: unknown,
-): x is ReverseProxyTargetValuesSupplier {
-  return x && typeof x === "object" &&
-    "isReverseProxyTargetValuesSupplier" in x;
-}
+export const isReverseProxyTargetValuesSupplier = safety.typeGuard<
+  ReverseProxyTargetValuesSupplier
+>("isReverseProxyTargetValuesSupplier");
 
 export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
   readonly isServiceConfig = true;
@@ -100,17 +97,13 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
 
   constructor(
     ctx: giac.ConfigContext,
-    proxySupplier:
-      | ReverseProxyTargetValuesSupplier
-      | ReverseProxyTargetValuesSupplierConstructor,
+    proxySupplier: ReverseProxyTargetValuesSupplier,
     optionals?: giac.ServiceConfigOptionals,
     isSecure?: boolean | undefined,
     extraHosts?: vm.TextValue[],
   ) {
     super({ serviceName: "reverse-proxy", ...optionals });
-    this.proxySupplier = isReverseProxyTargetValuesSupplier(proxySupplier)
-      ? proxySupplier
-      : new proxySupplier(ctx);
+    this.proxySupplier = proxySupplier;
     if (extraHosts) {
       const extraHost: vm.TextValue[] = [];
       for (const c of extraHosts) {
@@ -453,9 +446,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
 export const reverseProxyConfigurator = new (class {
   configure(
     ctx: giac.ConfigContext,
-    proxySupplier:
-      | ReverseProxyTargetValuesSupplier
-      | ReverseProxyTargetValuesSupplierConstructor,
+    proxySupplier: ReverseProxyTargetValuesSupplier,
     optionals?: giac.ServiceConfigOptionals,
     isSecure?: boolean,
     extraHosts?: vm.TextValue[],

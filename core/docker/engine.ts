@@ -25,10 +25,6 @@ export enum ContainerRestartStrategy {
   UnlessStopped = "unless-stopped",
 }
 
-export function isDocker(c: unknown): c is Docker {
-  return c && typeof c === "object" && "isDocker" in c;
-}
-
 export type DockerEngineRelease = RegExp;
 export type DockerComposeFileFormat = string;
 

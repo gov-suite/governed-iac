@@ -1,7 +1,6 @@
-import { contextMgr as cm, valueMgr as vm } from "./deps.ts";
+import { contextMgr as cm, safety, valueMgr as vm } from "./deps.ts";
 import { EnvVarPlaceholders, envVarPlaceholdersFactory } from "./env.ts";
 import type { ServiceConfig } from "./service.ts";
-
 export interface ConfigContextSubscriptionHandler<T> {
   (ctx: ConfigContext, x: T): void;
 }
@@ -27,9 +26,9 @@ export interface ConfigContext extends cm.ProjectContext {
   finalize(): void;
 }
 
-export function isConfigContext(c: unknown): c is ConfigContext {
-  return c && typeof c === "object" && "isConfigContext" in c;
-}
+export const isConfigContext = safety.typeGuard<ConfigContext>(
+  "isConfigContext",
+);
 
 export class DefaultConfigContext implements ConfigContext {
   readonly isContext = true;

@@ -1,7 +1,8 @@
+import type { valueMgr as vm } from "./deps.ts";
+import { safety } from "./deps.ts";
 import * as de from "./docker/engine.ts";
 import type * as img from "./image.ts";
 import type * as orch from "./orchestrator.ts";
-import type { valueMgr as vm } from "./deps.ts";
 
 export type GraphName = vm.TextValue;
 
@@ -20,9 +21,7 @@ export interface Graph {
   forEachOrchestrator(fn: OrchestratorHandler): void;
 }
 
-export function isGraph(x: unknown): x is Graph {
-  return x && typeof x === "object" && "isGraph" in x;
-}
+export const isGraph = safety.typeGuard<Graph>("isGraph");
 
 export class MultiEngineGraph implements Graph {
   readonly isGraph = true;
