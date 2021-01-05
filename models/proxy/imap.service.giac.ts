@@ -82,8 +82,7 @@ export class CustomImapapiInstructions implements giac.Instructions {
 
   constructor() {}
   configureInstructions(): string {
-    var value: string = "";
-    value = [
+    var value: string = [
       `FROM node:12.16.0-alpine` + "\n",
       "RUN apk add --no-cache git bash",
       "RUN cd /root && " + "\\",

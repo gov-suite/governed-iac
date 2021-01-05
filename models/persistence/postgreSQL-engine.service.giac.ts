@@ -64,11 +64,9 @@ export class PostgreSqlEngineServiceConfig
       }
       : engineOptions.baseDockerImage;
 
-    this.environment.POSTGRESQLENGINE_DB = "${POSTGRESQLENGINE_DB}";
-    this.environment.POSTGRESQLENGINE_USER = "${POSTGRESQLENGINE_USER}";
-    this.environment.POSTGRESQLENGINE_PASSWORD = "${POSTGRESQLENGINE_PASSWORD}";
-    this.environment.POSTGRESQLENGINE_PUBL_PORT =
-      "${POSTGRESQLENGINE_PUBL_PORT}";
+    this.environment.POSTGRES_DB = "${POSTGRESQLENGINE_DB}";
+    this.environment.POSTGRES_USER = "${POSTGRESQLENGINE_USER}";
+    this.environment.POSTGRES_PASSWORD = "${POSTGRESQLENGINE_PASSWORD}";
     ctx.envVars.requiredEnvVar(
       "POSTGRESQLENGINE_DB",
       "Postgres database name",
@@ -220,7 +218,7 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
 
   constructor(readonly options: PostgreSqlEngineOptions) {}
   configureInstructions(options: PostgreSqlEngineOptions): string {
-    var value: string = "";
+    let value = "";
     if (options.postgreSqlConfigOptions.configurePlJava) {
       value = [
         `FROM postgres:12 as builder` + "\n",
