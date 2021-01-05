@@ -79,10 +79,6 @@ export class PostgreSqlEngineServiceConfig
       "POSTGRESQLENGINE_PASSWORD",
       "Postgres user password",
     );
-    ctx.envVars.requiredEnvVar(
-      "POSTGRESQLENGINE_PUBL_PORT",
-      "Postgres database host port",
-    );
     this.ports = giac.portsFactory.publishSingle(
       ctx.envVars.defaultEnvVar(
         "PUBL_PORT",

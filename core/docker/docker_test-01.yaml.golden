@@ -9,7 +9,6 @@
 #   * POSTGRESQLENGINE_DB - Postgres database name (required)
 #   * POSTGRESQLENGINE_USER - Postgres database user, default (required)
 #   * POSTGRESQLENGINE_PASSWORD - Postgres user password (required)
-#   * POSTGRESQLENGINE_PUBL_PORT - Postgres database host port (required)
 #   * GITLAB_JWKS_URI - GitLab JSON Web Key Set URL endpoint, eg:- https://git.netspective.io/oauth/discovery/keys (required)
 #   * HOST_MACHINE_IP - IP of host machine for using in traefik contianer as hosts entry. (required)
 #   * EP_EXECENV - Endpoints' execution environment name like sandbox, devl, test, demo, or prod (default sandbox)
