@@ -17,7 +17,7 @@
 #   * EP_EXECENV - Endpoints' execution environment name like sandbox, devl, test, demo, or prod (default sandbox)
 #   * EP_BOUNDARY - Endpoints' name of application or service (default appx)
 #   * EP_FQDNSUFFIX - Endpoints' Fully qualified domain name suffix (default docker.localhost)
-#   * POSTGRESQLENGINE_PUBL_PORT - PostgreSQL Engine published port (default ${POSTGRESQLENGINE_PUBL_PORT})
+#   * POSTGRESQLENGINE_PUBL_PORT - PostgreSQL Engine published port (default 5432)
 
 version: '3.3'
 services:
@@ -29,7 +29,7 @@ services:
     image: 'middleware-rdbms-auto-baas_postgresqlengine:latest'
     restart: always
     ports:
-      - '${POSTGRESQLENGINE_PUBL_PORT:-${POSTGRESQLENGINE_PUBL_PORT}}:5432'
+      - '${POSTGRESQLENGINE_PUBL_PORT:-5432}:5432'
     environment:
       POSTGRES_DB: '${POSTGRESQLENGINE_DB}'
       POSTGRES_USER: '${POSTGRESQLENGINE_USER}'
@@ -54,7 +54,7 @@ services:
       - '--cors'
       - '--connection'
       - >-
-        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-${POSTGRESQLENGINE_PUBL_PORT}}/${POSTGRESQLENGINE_DB}
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-5432}/${POSTGRESQLENGINE_DB}
       - '--host'
       - 0.0.0.0
       - '--schema'
@@ -82,7 +82,7 @@ services:
       - postgresqlengine
     environment:
       HASURA_GRAPHQL_DATABASE_URL: >-
-        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-${POSTGRESQLENGINE_PUBL_PORT}}/${POSTGRESQLENGINE_DB}
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-5432}/${POSTGRESQLENGINE_DB}
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: 'startup,http-log,webhook-log,websocket-log,query-log'
     networks:
@@ -100,7 +100,7 @@ services:
       - postgresqlengine
     environment:
       PGRST_DB_URI: >-
-        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-${POSTGRESQLENGINE_PUBL_PORT}}/${POSTGRESQLENGINE_DB}
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-5432}/${POSTGRESQLENGINE_DB}
       PGRST_DB_SCHEMA: public
       PGRST_DB_ANON_ROLE: '${POSTGRESQLENGINE_USER}'
     networks:

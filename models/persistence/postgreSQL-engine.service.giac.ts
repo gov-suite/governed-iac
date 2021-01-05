@@ -87,7 +87,7 @@ export class PostgreSqlEngineServiceConfig
       ctx.envVars.defaultEnvVar(
         "PUBL_PORT",
         "PostgreSQL Engine published port",
-        "${POSTGRESQLENGINE_PUBL_PORT}",
+        5432,
         this,
       ),
       5432,
