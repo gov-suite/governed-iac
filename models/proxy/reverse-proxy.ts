@@ -396,14 +396,16 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
 
   traefikForwardAuthOptions(
     isForwardAuth?: boolean,
+    isSecure?: boolean,
   ): TraefikForwardAuthOptions {
     return isForwardAuth
       ? {
         isTraefikForwardAuthOptionsEnabled: true,
         backendMiddlewares: "-auth",
         trustForwardHeader: true,
-        address:
-          "https://${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/token",
+        address: isSecure
+          ? "https://${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/token"
+          : "http://${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/token",
       }
       : {
         isTraefikForwardAuthOptionsEnabled: false,
@@ -425,7 +427,10 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       isForwardAuth: isForwardAuth,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
       corsOptions: this.traefikCorsOptions(isCors),
-      forwardAuthOptions: this.traefikForwardAuthOptions(isForwardAuth),
+      forwardAuthOptions: this.traefikForwardAuthOptions(
+        isForwardAuth,
+        isSecure,
+      ),
     };
     return traefikServiceConfigOptionals;
   }

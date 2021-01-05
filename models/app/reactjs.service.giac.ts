@@ -50,8 +50,7 @@ export class CustomReactJsInstructions implements giac.Instructions {
   }
 
   configureInstructions(): string {
-    var value: string = "";
-    value = [
+    var value: string = [
       "FROM node:14 as builder",
       "ENV GENERATE_SOURCEMAP=false",
       "ARG GIT_REPO_USERNAME",
