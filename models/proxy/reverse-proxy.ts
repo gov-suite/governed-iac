@@ -332,7 +332,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
           if (fo.backendMiddlewares) {
             sc.applyLabel(
               "traefik.http.routers." + rpServiceName +
-                "-auth.middlewares",
+                ".middlewares",
               rpServiceName + fo.backendMiddlewares,
             );
           }
