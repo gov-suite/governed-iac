@@ -1,8 +1,8 @@
-export * as encodingTOML from "https://deno.land/std@0.80.0/encoding/toml.ts";
-export * as testingAsserts from "https://deno.land/std@0.80.0/testing/asserts.ts";
-export * as documentArtfNature from "https://denopkg.com/shah/artifacts-persistence@v1.1.1/document/mod.ts";
-export * as artfPersist from "https://denopkg.com/shah/artifacts-persistence@v1.1.1/mod.ts";
-export * as polyglotArtfNature from "https://denopkg.com/shah/artifacts-persistence@v1.1.1/polyglot/mod.ts";
+export * as encodingTOML from "https://deno.land/std@0.84.0/encoding/toml.ts";
+export * as testingAsserts from "https://deno.land/std@0.84.0/testing/asserts.ts";
+export * as documentArtfNature from "https://denopkg.com/shah/artifacts-persistence@v1.2.0/document/mod.ts";
+export * as artfPersist from "https://denopkg.com/shah/artifacts-persistence@v1.2.0/mod.ts";
+export * as polyglotArtfNature from "https://denopkg.com/shah/artifacts-persistence@v1.2.0/polyglot/mod.ts";
 export * as contextMgr from "https://denopkg.com/shah/context-manager@v1.0.7/mod.ts";
 export * as specModule from "https://denopkg.com/shah/specification-module@v1.0.9/mod.ts";
 export * as textInflect from "https://denopkg.com/shah/text-inflect@v1.0.5/mod.ts";
