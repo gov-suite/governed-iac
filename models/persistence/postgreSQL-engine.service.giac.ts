@@ -145,6 +145,7 @@ export class PostgreSqlEngineServiceConfig
     );
     mta.appendText(ctx, "CREATE EXTENSION IF NOT EXISTS pgcrypto;\n");
     mta.appendText(ctx, "CREATE EXTENSION IF NOT EXISTS plpgsql_check;\n");
+    mta.appendText(ctx, "CREATE EXTENSION IF NOT EXISTS plpython3u;\n");
     ph.persistTextArtifact(
       ctx,
       vm.resolveTextValue(ctx, this.initDbVolume.localFsPath) +
