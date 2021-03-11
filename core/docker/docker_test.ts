@@ -31,7 +31,7 @@ Deno.test(
     ta.assert(p.resultsMap.get("./initdb.d/000_postgresqlengine-initdb.sql"));
     ta.assert(p.resultsMap.get("acme.json"));
     ta.assert(p.resultsMap.get("jwt-validator.sh"));
-    ta.assert(p.resultsMap.get("init-permissions.sh"));
+    ta.assert(p.resultsMap.get("./initdb.d/init-permissions.sh"));
 
     const dockerCompose = p.resultsMap.get("docker-compose.yaml");
     ta.assert(dockerCompose);

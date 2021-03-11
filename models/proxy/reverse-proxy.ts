@@ -153,6 +153,8 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
         "--providers.docker.exposedByDefault=false",
         "--api.dashboard=true",
         "--api.insecure=true",
+        "--entrypoints.http.address=:80",
+        "--entryPoints.http.forwardedHeaders.insecure",
       ];
     }
     this.ports = [
@@ -293,15 +295,31 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
           );
         }
       }
-      if (rptOptionals?.isCors == true) {
-        if (rptOptionals?.corsOptions) {
+      if (rptOptionals?.isCors == true && rptOptionals?.isForwardAuth == true) {
+        if (rptOptionals?.corsOptions && rptOptionals?.forwardAuthOptions) {
           const co = rptOptionals?.corsOptions;
-          if (co.backendMiddlewares) {
+          const fo = rptOptionals?.forwardAuthOptions;
+          if (co.backendMiddlewares && fo.backendMiddlewares) {
             sc.applyLabel(
               "traefik.http.routers." + rpServiceName +
                 ".middlewares",
-              rpServiceName + co.backendMiddlewares,
+              rpServiceName + co.backendMiddlewares + ", " + rpServiceName +
+                fo.backendMiddlewares,
             );
+          }
+        }
+      }
+      if (rptOptionals?.isCors == true) {
+        if (rptOptionals?.corsOptions) {
+          const co = rptOptionals?.corsOptions;
+          if (rptOptionals?.isForwardAuth == false) {
+            if (co.backendMiddlewares) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName +
+                  ".middlewares",
+                rpServiceName + co.backendMiddlewares,
+              );
+            }
           }
           if (co.accessControlAllowHeaders) {
             sc.applyLabel(
@@ -329,12 +347,14 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       if (rptOptionals?.isForwardAuth == true) {
         if (rptOptionals?.forwardAuthOptions) {
           const fo = rptOptionals?.forwardAuthOptions;
-          if (fo.backendMiddlewares) {
-            sc.applyLabel(
-              "traefik.http.routers." + rpServiceName +
-                ".middlewares",
-              rpServiceName + fo.backendMiddlewares,
-            );
+          if (rptOptionals?.isCors == false) {
+            if (fo.backendMiddlewares) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName +
+                  ".middlewares",
+                rpServiceName + fo.backendMiddlewares,
+              );
+            }
           }
           if (fo.trustForwardHeader) {
             sc.applyLabel(
