@@ -297,6 +297,8 @@ services:
       - '--providers.docker.exposedByDefault=false'
       - '--api.dashboard=true'
       - '--api.insecure=true'
+      - '--entrypoints.http.address=:80'
+      - '--entryPoints.http.forwardedHeaders.insecure'
 networks:
   network:
     external:

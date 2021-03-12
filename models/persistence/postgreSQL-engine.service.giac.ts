@@ -18,10 +18,16 @@ export interface PostgreSqlConfigOptions {
   readonly configurePostgis?: boolean;
   readonly configurePgtap?: boolean;
   readonly configurePlpython3?: boolean;
+  readonly configurePlpython3GitPython?: boolean;
+  readonly configurePLSH?: boolean;
+  readonly configurePLPERL?: boolean;
   readonly configurePgAudit?: boolean;
   readonly configurePlv8?: boolean;
   readonly configurePlJava?: boolean;
   readonly configureMessageDB?: boolean;
+  readonly configurePgsql?: boolean;
+  readonly configurePgcron?: boolean;
+  readonly configureSPARQL?: boolean;
 }
 
 export interface PostgreSqlConnectionSecrets {
@@ -165,7 +171,10 @@ export class PostgreSqlEngineServiceConfig
           "set -e" + "\n",
           'echo "host replication $POSTGRES_USER 0.0.0.0/0 trust" >> $PGDATA/pg_hba.conf',
           'echo "shared_preload_libraries = ' +
-          "'pg_stat_statements, pgaudit'" + '" >> $PGDATA/postgresql.conf',
+          "'pg_stat_statements, pgaudit, pg_cron'" +
+          '" >> $PGDATA/postgresql.conf',
+          'echo "cron.database_name = ' + "'$POSTGRES_DB'" +
+          '" >> $PGDATA/postgresql.conf',
           'echo "pg_stat_statements.max = 10000" >> $PGDATA/postgresql.conf',
           'echo "pg_stat_statements.track = all" >> $PGDATA/postgresql.conf',
           'echo "wal_level=logical" >> $PGDATA/postgresql.conf',
@@ -183,7 +192,8 @@ export class PostgreSqlEngineServiceConfig
     );
     ph.persistTextArtifact(
       ctx,
-      "init-permissions.sh",
+      vm.resolveTextValue(ctx, this.initDbVolume.localFsPath) +
+        "/init-permissions.sh",
       mtaPermission,
       { chmod: 0o755 },
     );
@@ -218,9 +228,9 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     let value = "";
     if (options.postgreSqlConfigOptions.configurePlJava) {
       value = [
-        `FROM postgres:12 as builder` + "\n",
+        `FROM postgres:13.2 as builder` + "\n",
         "RUN apt-get update " + "\\",
-        "    && apt-get install -y build-essential default-jdk maven postgresql-server-dev-12 libecpg-dev libkrb5-dev git libssl-dev " +
+        "    && apt-get install -y build-essential default-jdk maven postgresql-server-dev-13 libecpg-dev libkrb5-dev git libssl-dev " +
         "\\",
         "    && cd /tmp " + "\\",
         "    && git clone https://github.com/tada/pljava.git " + "\\",
@@ -229,10 +239,10 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
         "    && ls -l pljava-packaging/target/" + "\n\n",
       ].join("\n");
     }
-    value += "FROM postgres:12" + "\n\n";
+    value += "FROM postgres:13.2" + "\n\n";
     if (options.postgreSqlConfigOptions.configurePostgis) {
       value += [
-        `# install postgis`,
+        `# Install postgis`,
         "ENV POSTGIS_MAJOR 3",
         "ENV POSTGIS_VERSION 3.0.0+dfsg-2~exp1.pgdg100+1",
         "RUN apt-get update " + "\\",
@@ -250,7 +260,7 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     }
     if (options.postgreSqlConfigOptions.configurePgtap) {
       value += [
-        `# install pgtap`,
+        `# Install pgtap`,
         "ENV PGTAP_VERSION v1.1.0",
         "RUN git clone git://github.com/theory/pgtap.git " + "\\",
         "    && cd pgtap && git checkout tags/$PGTAP_VERSION " + "\\",
@@ -259,15 +269,36 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     }
     if (options.postgreSqlConfigOptions.configurePlpython3) {
       value += [
-        `# install plpython3`,
-        "RUN apt-get update " + "\\ ",
-        "      && apt-get install postgresql-plpython3-12 -y" + "\n\n",
+        `# Install plpython3`,
+        "RUN apt-get update " + "\\",
+        "      && apt-get install -y postgresql-contrib postgresql-plpython3-13" +
+        "\n\n",
+      ].join("\n");
+    }
+    if (options.postgreSqlConfigOptions.configurePlpython3GitPython) {
+      value += [
+        `# Install python3-pip & pillow  & GitPython`,
+        "RUN apt install -y python3-pip " + "\\",
+        "        && pip3 install pillow " + "\\",
+        "        && pip3 install GitPython" + "\n\n",
+      ].join("\n");
+    }
+    if (options.postgreSqlConfigOptions.configurePLSH) {
+      value += [
+        `# Install PL/SH`,
+        "RUN apt install -y postgresql-13-plsh" + "\n\n",
+      ].join("\n");
+    }
+    if (options.postgreSqlConfigOptions.configurePLPERL) {
+      value += [
+        `# Install PL/PERL`,
+        "RUN apt install -y postgresql-plperl-13" + "\n\n",
       ].join("\n");
     }
     if (options.postgreSqlConfigOptions.configurePgAudit) {
       value += [
-        `# install pgAudit`,
-        `ENV PGAUDIT_VERSION 1.4.0`,
+        `# Install pgAudit`,
+        `ENV PGAUDIT_VERSION 1.5.0`,
         'RUN pgAuditDependencies="postgresql-server-dev-$PG_MAJOR ' + "\\",
         "    libssl-dev " + "\\",
         "    libkrb5-dev " + "\\",
@@ -279,15 +310,14 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
         "    && cd /tmp " + "\\",
         "    && wget https://github.com/pgaudit/pgaudit/archive/${PGAUDIT_VERSION}.tar.gz " +
         "\\",
-        "    && tar -zxf 1.4.0.tar.gz " + "\\",
-        "    && cd pgaudit-1.4.0 " + "\\",
-        "    && make check USE_PGXS=1 " + "\\",
-        "    && make install USE_PGXS=1 " + "\n\n",
+        "    && tar -zxf 1.5.0.tar.gz " + "\\",
+        "    && cd pgaudit-1.5.0 " + "\\",
+        "    && make install USE_PGXS=1" + "\n\n",
       ].join("\n");
     }
     if (options.postgreSqlConfigOptions.configurePlv8) {
       value += [
-        `# install plv8`,
+        `# Install plv8`,
         "ENV PLV8_VERSION=r3.0alpha" + "\n",
         'RUN buildDependencies="build-essential ' + "\\",
         "    ca-certificates " + "\\",
@@ -324,9 +354,9 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     }
     if (options.postgreSqlConfigOptions.configurePlPgSqlCheckLinter) {
       value += [
-        `# install plpgsql_check`,
+        `# Install plpgsql_check`,
         "RUN apt-get update " + "\\",
-        "    && apt-get install -y gcc make libicu-dev postgresql-server-dev-12 " +
+        "    && apt-get install -y gcc make libicu-dev postgresql-server-dev-13 " +
         "\\",
         "    && cd /tmp " + "\\",
         "    && git clone https://github.com/okbob/plpgsql_check.git " + "\\",
@@ -337,21 +367,53 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     }
     if (options.postgreSqlConfigOptions.configurePlJava) {
       value += [
-        `# install PL/Java`,
+        `# Install PL/Java`,
         "ENV LIBJVM_PATH=/usr/lib/jvm/java-11-openjdk-amd64/lib/server/libjvm.so",
-        "COPY --from=builder /tmp/pljava/pljava-packaging/target/pljava-pg12.3-amd64-Linux-gpp.jar /tmp/pljava-pg12.3-amd64-Linux-gpp.jar",
-        "RUN apt-get install -y default-jre " + "\\",
-        "    && java -jar /tmp/pljava-pg12.3-amd64-Linux-gpp.jar" + "\n",
-        "RUN mkdir -p /docker-entrypoint-initdb.d",
-        "COPY init-permissions.sh /docker-entrypoint-initdb.d/" + "\n\n",
+        "COPY --from=builder /tmp/pljava/pljava-packaging/target/pljava-pg13.jar /tmp/pljava-pg13.jar",
+        "RUN apt update && apt install -y openjdk-11-jre " + "\\",
+        "    && java -jar /tmp/pljava-pg13.jar" + "\n",
+        "RUN mkdir -p /docker-entrypoint-initdb.d" + "\n\n",
       ].join("\n");
     }
     if (options.postgreSqlConfigOptions.configureMessageDB) {
       value += [
-        `# clone Message DB`,
+        `# Clone Message DB`,
         "RUN cd /usr/src/ " + "\\",
         "  && git clone https://github.com/message-db/message-db.git",
-        "WORKDIR /usr/src/message-db" + "\n",
+        "WORKDIR /usr/src/message-db" + "\n\n",
+      ].join("\n");
+    }
+    if (options.postgreSqlConfigOptions.configurePgsql) {
+      value += [
+        `# Install pgsql-http`,
+        "RUN apt-get update " + "\\",
+        "    && apt-get install -y libcurl4-openssl-dev build-essential " +
+        "\\",
+        "    && cd /tmp " + "\\",
+        "    && git clone https://github.com/pramsey/pgsql-http.git " + "\\",
+        "    && cd pgsql-http " + "\\",
+        "    && make clean " + "\\",
+        "    && make install" + "\n\n",
+      ].join("\n");
+    }
+    if (options.postgreSqlConfigOptions.configurePgcron) {
+      value += [
+        `# Install pg_cron`,
+        "RUN apt-get -y install postgresql-13-cron" + "\n\n",
+      ].join("\n");
+    }
+
+    if (options.postgreSqlConfigOptions.configureSPARQL) {
+      value += [
+        `# Install SPARQL`,
+        "RUN cd /tmp && git clone https://github.com/lacanoid/pgsparql.git " +
+        "\\",
+        "    && cd pgsparql " + "\\",
+        "    && make " + "\\",
+        "    && make install" + "\n",
+        "RUN apt-get -y install libwww-perl",
+        "RUN apt-get -y install libjson-perl",
+        "RUN apt-get -y install libdatetime-perl",
       ].join("\n");
     }
     return value;
@@ -446,6 +508,16 @@ export const postgreSqlConfigurator = new (class {
             configurePlpython3:
               (postgreSqlConfigOptions?.configurePlpython3 == false) ? false
               : true,
+            configurePlpython3GitPython:
+              (postgreSqlConfigOptions?.configurePlpython3GitPython == false)
+                ? false
+                : true,
+            configurePLSH: (postgreSqlConfigOptions?.configurePLSH == false)
+              ? false
+              : true,
+            configurePLPERL: (postgreSqlConfigOptions?.configurePLPERL == false)
+              ? false
+              : true,
             configurePgAudit:
               (postgreSqlConfigOptions?.configurePgAudit == false) ? false
               : true,
@@ -457,6 +529,15 @@ export const postgreSqlConfigurator = new (class {
               : true,
             configureMessageDB:
               (postgreSqlConfigOptions?.configureMessageDB == false) ? false
+              : true,
+            configurePgsql: (postgreSqlConfigOptions?.configurePgsql == false)
+              ? false
+              : true,
+            configurePgcron: (postgreSqlConfigOptions?.configurePgcron == false)
+              ? false
+              : true,
+            configureSPARQL: (postgreSqlConfigOptions?.configureSPARQL == false)
+              ? false
               : true,
           },
         },
