@@ -11,6 +11,7 @@ import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.s
 import { hasuraConfigurator as hasura } from "../proxy/rdbms/hasura.service.giac.ts";
 import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphile.service.giac.ts";
 import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
+import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -50,6 +51,11 @@ export class AutoBaaS extends TypicalComposeConfig {
       this,
       this.common,
     );
+    const postgresExporterSvc = postgresExporter.configure(this, {
+      dependsOn: [pgDBE],
+      ...this.common,
+    });
+
     rp.configure(
       this,
       rptvs,
@@ -67,6 +73,7 @@ export class AutoBaaS extends TypicalComposeConfig {
           queryTreeApp,
           portainerApp,
           jwtValidatorApp,
+          postgresExporterSvc,
         ],
         ...this.common,
       },
