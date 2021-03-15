@@ -28,6 +28,10 @@ export class AutoBaaS extends TypicalComposeConfig {
     const pgDBE = pg.configureDevlEngine(this, this.common);
     const pgDbConn = pgDBE.connection();
     const pgDbeCommon = { dependsOn: [pgDBE], ...this.common };
+    const postgresExporterSvc = postgresExporter.configure(this, {
+      dependsOn: [pgDBE],
+      ...this.common,
+    });
     const postGraphileSvc = graphile.configure(
       this,
       pgDbConn,
@@ -51,10 +55,6 @@ export class AutoBaaS extends TypicalComposeConfig {
       this,
       this.common,
     );
-    const postgresExporterSvc = postgresExporter.configure(this, {
-      dependsOn: [pgDBE],
-      ...this.common,
-    });
 
     rp.configure(
       this,
@@ -62,6 +62,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         dependsOn: [
           pgDBE,
+          postgresExporterSvc,
           postGraphileSvc,
           hasuraSvc,
           postgRestSvc,
@@ -73,7 +74,6 @@ export class AutoBaaS extends TypicalComposeConfig {
           queryTreeApp,
           portainerApp,
           jwtValidatorApp,
-          postgresExporterSvc,
         ],
         ...this.common,
       },

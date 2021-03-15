@@ -36,6 +36,24 @@ services:
       - './initdb.d:/docker-entrypoint-initdb.d:ro'
     networks:
       - network
+  postgres-exporter:
+    container_name: middleware-rdbms-auto-baas_postgres-exporter
+    image: quay.io/prometheuscommunity/postgres-exporter
+    restart: always
+    ports:
+      - '9187:9187'
+    depends_on:
+      - postgresqlengine
+    environment:
+      DATA_SOURCE_NAME: >-
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:5432/${POSTGRESQLENGINE_DB}?sslmode=disable
+    networks:
+      - network
+    labels:
+      traefik.http.routers.postgres-exporter.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.postgres-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.enable: true
+      traefik.http.services.postgres-exporter.loadbalancer.server.port: 9187
   postGraphile:
     container_name: middleware-rdbms-auto-baas_postGraphile
     build:
@@ -246,24 +264,6 @@ services:
         Host(`${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.jwt-validator.loadbalancer.server.port: 3000
-  postgres-exporter:
-    container_name: middleware-rdbms-auto-baas_postgres-exporter
-    image: quay.io/prometheuscommunity/postgres-exporter
-    restart: always
-    ports:
-      - '9187:9187'
-    depends_on:
-      - postgresqlengine
-    environment:
-      DATA_SOURCE_NAME: >-
-        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:5432/${POSTGRESQLENGINE_DB}?sslmode=disable
-    networks:
-      - network
-    labels:
-      traefik.http.routers.postgres-exporter.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postgres-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.enable: true
-      traefik.http.services.postgres-exporter.loadbalancer.server.port: 9187
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -274,6 +274,7 @@ services:
       - '8099:8080'
     depends_on:
       - postgresqlengine
+      - postgres-exporter
       - postGraphile
       - hasura
       - postgREST
@@ -285,7 +286,6 @@ services:
       - queryTree
       - portainer
       - jwt-validator
-      - postgres-exporter
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     extra_hosts:
