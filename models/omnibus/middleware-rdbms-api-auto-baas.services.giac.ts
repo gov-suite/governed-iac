@@ -12,6 +12,7 @@ import { hasuraConfigurator as hasura } from "../proxy/rdbms/hasura.service.giac
 import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphile.service.giac.ts";
 import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
 import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
+import { graphqlExporterConfigurator as graphqlExporter } from "../app/graphql-exporter.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -55,6 +56,10 @@ export class AutoBaaS extends TypicalComposeConfig {
       this,
       this.common,
     );
+    const graphqlExporterApp = graphqlExporter.configure(
+      this,
+      this.common,
+    );
 
     rp.configure(
       this,
@@ -74,6 +79,7 @@ export class AutoBaaS extends TypicalComposeConfig {
           queryTreeApp,
           portainerApp,
           jwtValidatorApp,
+          graphqlExporterApp,
         ],
         ...this.common,
       },
