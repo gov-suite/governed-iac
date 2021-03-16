@@ -264,6 +264,19 @@ services:
         Host(`${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.jwt-validator.loadbalancer.server.port: 3000
+  graphql-exporter:
+    container_name: middleware-rdbms-auto-baas_graphql-exporter
+    image: quay.io/ricardbejarano/graphql_exporter
+    restart: always
+    ports:
+      - '9199:9199'
+    networks:
+      - network
+    labels:
+      traefik.http.routers.graphql-exporter.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.graphql-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.enable: true
+      traefik.http.services.graphql-exporter.loadbalancer.server.port: 9199
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -286,6 +299,7 @@ services:
       - queryTree
       - portainer
       - jwt-validator
+      - graphql-exporter
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     extra_hosts:
