@@ -28,6 +28,7 @@ export interface PostgreSqlConfigOptions {
   readonly configurePgsql?: boolean;
   readonly configurePgcron?: boolean;
   readonly configureSPARQL?: boolean;
+  readonly configurePgsemver?: boolean;
 }
 
 export interface PostgreSqlConnectionSecrets {
@@ -402,7 +403,6 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
         "RUN apt-get -y install postgresql-13-cron" + "\n\n",
       ].join("\n");
     }
-
     if (options.postgreSqlConfigOptions.configureSPARQL) {
       value += [
         `# Install SPARQL`,
@@ -413,9 +413,19 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
         "    && make install" + "\n",
         "RUN apt-get -y install libwww-perl",
         "RUN apt-get -y install libjson-perl",
-        "RUN apt-get -y install libdatetime-perl",
+        "RUN apt-get -y install libdatetime-perl" + "\n\n",
       ].join("\n");
     }
+    if (options.postgreSqlConfigOptions.configurePgsemver) {
+      value += [
+        `# Install pg-semver`,
+        "RUN cd /tmp && git clone https://github.com/theory/pg-semver.git",
+        "    && cd pg-semver " + "\\",
+        "    && make " + "\\",
+        "    && make install",
+      ].join("\n");
+    }
+
     return value;
   }
 
@@ -538,6 +548,9 @@ export const postgreSqlConfigurator = new (class {
               : true,
             configureSPARQL: (postgreSqlConfigOptions?.configureSPARQL == false)
               ? false
+              : true,
+            configurePgsemver:
+              (postgreSqlConfigOptions?.configurePgsemver == false) ? false
               : true,
           },
         },
