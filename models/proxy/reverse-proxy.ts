@@ -36,6 +36,13 @@ export interface TraefikForwardAuthOptions {
   readonly address?: string;
 }
 
+export interface TraefikNonAuthOptions {
+  readonly isTraefikNonAuthOptionsEnabled?: boolean;
+  readonly rule?: string;
+  readonly backendMiddlewares?: string;
+  readonly replacepath?: string;
+}
+
 export interface TraefikServiceConfigOptionals
   extends giac.ServiceConfigOptionals {
   readonly isTraefikServiceConfigOptionals: true;
@@ -43,15 +50,18 @@ export interface TraefikServiceConfigOptionals
   readonly isSecure?: boolean;
   readonly isCors?: boolean;
   readonly isForwardAuth?: boolean;
+  readonly isNonAuth?: boolean;
   readonly routerOptions?: TraefikRouterOptions;
   readonly corsOptions?: TraefikCorsOptions;
   readonly forwardAuthOptions?: TraefikForwardAuthOptions;
+  readonly nonAuthOptions?: TraefikNonAuthOptions;
 }
 
 export interface ReverseProxyTargetOptions {
   readonly isReverseProxyTargetOptionsEnabled: boolean;
   readonly isCors?: boolean;
   readonly isForwardAuth?: boolean;
+  readonly isNonAuth?: boolean;
 }
 
 export interface ReverseProxyTarget {
@@ -295,11 +305,17 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
           );
         }
       }
-      if (rptOptionals?.isCors == true && rptOptionals?.isForwardAuth == true) {
-        if (rptOptionals?.corsOptions && rptOptionals?.forwardAuthOptions) {
+      if (
+        rptOptionals?.isCors == true && rptOptionals?.isForwardAuth == true
+      ) {
+        if (
+          rptOptionals?.corsOptions && rptOptionals?.forwardAuthOptions
+        ) {
           const co = rptOptionals?.corsOptions;
           const fo = rptOptionals?.forwardAuthOptions;
-          if (co.backendMiddlewares && fo.backendMiddlewares) {
+          if (
+            co.backendMiddlewares && fo.backendMiddlewares
+          ) {
             sc.applyLabel(
               "traefik.http.routers." + rpServiceName +
                 ".middlewares",
@@ -312,7 +328,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       if (rptOptionals?.isCors == true) {
         if (rptOptionals?.corsOptions) {
           const co = rptOptionals?.corsOptions;
-          if (rptOptionals?.isForwardAuth == false) {
+          if (rptOptionals?.isForwardAuth != true) {
             if (co.backendMiddlewares) {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName +
@@ -347,7 +363,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       if (rptOptionals?.isForwardAuth == true) {
         if (rptOptionals?.forwardAuthOptions) {
           const fo = rptOptionals?.forwardAuthOptions;
-          if (rptOptionals?.isCors == false) {
+          if (rptOptionals?.isCors != true) {
             if (fo.backendMiddlewares) {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName +
@@ -368,6 +384,32 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
               "traefik.http.middlewares." + rpServiceName +
                 "-auth.forwardauth.address",
               fo.address,
+            );
+          }
+        }
+      }
+      if (rptOptionals?.isNonAuth == true) {
+        if (rptOptionals?.nonAuthOptions) {
+          const no = rptOptionals?.nonAuthOptions;
+          if (no.rule) {
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName + "NonAuth" +
+                ".rule",
+              no.rule,
+            );
+          }
+          if (no.backendMiddlewares) {
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName + "NonAuth" +
+                ".middlewares",
+              no.backendMiddlewares,
+            );
+          }
+          if (no.replacepath) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + no.backendMiddlewares +
+                ".replacepath.path",
+              no.replacepath,
             );
           }
         }
@@ -432,12 +474,29 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       };
   }
 
+  traefikNonAuthOptions(
+    isNonAuth?: boolean,
+  ): TraefikNonAuthOptions {
+    return isNonAuth
+      ? {
+        isTraefikNonAuthOptionsEnabled: true,
+        rule:
+          "Host(`${EP_EXECENV:-sandbox}.postGraphile.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && (Path(`/anonymousgraphql`))",
+        backendMiddlewares: "replacepath-middleware",
+        replacepath: "/graphql",
+      }
+      : {
+        isTraefikNonAuthOptionsEnabled: false,
+      };
+  }
+
   traefikServiceConfigOptionals(
     ctx: giac.ConfigContext,
     rpt: ReverseProxyTarget,
     isSecure?: boolean,
     isCors?: boolean,
     isForwardAuth?: boolean,
+    isNonAuth?: boolean,
   ): TraefikServiceConfigOptionals {
     const traefikServiceConfigOptionals: TraefikServiceConfigOptionals = {
       isTraefikServiceConfigOptionals: true,
@@ -445,11 +504,15 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       isSecure: isSecure,
       isCors: isCors,
       isForwardAuth: isForwardAuth,
+      isNonAuth: isNonAuth,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
       corsOptions: this.traefikCorsOptions(isCors),
       forwardAuthOptions: this.traefikForwardAuthOptions(
         isForwardAuth,
         isSecure,
+      ),
+      nonAuthOptions: this.traefikNonAuthOptions(
+        isNonAuth,
       ),
     };
     return traefikServiceConfigOptionals;
@@ -503,6 +566,7 @@ export const reverseProxyConfigurator = new (class {
                 isSecure,
                 rpt.proxyTargetOptions.isCors,
                 rpt.proxyTargetOptions.isForwardAuth,
+                rpt.proxyTargetOptions.isNonAuth,
               ),
             );
           } else {

@@ -96,6 +96,7 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
         isReverseProxyTargetOptionsEnabled: false,
         isCors: false,
         isForwardAuth: false,
+        isNonAuth: false,
       };
     }
   }
