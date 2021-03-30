@@ -419,7 +419,8 @@ export class CustomPostgreSqlEngineInstructions implements giac.Instructions {
     if (options.postgreSqlConfigOptions.configurePgsemver) {
       value += [
         `# Install pg-semver`,
-        "RUN cd /tmp && git clone https://github.com/theory/pg-semver.git",
+        "RUN cd /tmp && git clone https://github.com/theory/pg-semver.git " +
+        "\\",
         "    && cd pg-semver " + "\\",
         "    && make " + "\\",
         "    && make install",
