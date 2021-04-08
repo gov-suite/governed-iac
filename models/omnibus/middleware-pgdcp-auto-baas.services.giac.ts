@@ -47,19 +47,8 @@ export class AutoBaaS extends TypicalComposeConfig {
       graphile.defaultPostgraphileOptions,
       pgDbeCommon,
     );
-    const hasuraSvc = hasura.configure(this, pgDbConn, pgDbeCommon);
     const postgRestSvc = postgREST.configure(this, pgDbConn, pgDbeCommon);
-    const swaggerApp = swagger.configure(
-      this,
-      "http://" + rptvs.proxiedHostName(this, postgRestSvc) + "/",
-      { dependsOn: [postgRestSvc], ...this.common },
-    );
-    const esDBE = elasticSearch.configureDevlEngine(this, this.common);
-    const telemetrySvc = ot.configure(this, this.common, esDBE);
-    const pgAdminApp = pgAdmin.configure(this, pgDbeCommon);
     const adminerApp = adminer.configure(this, pgDbeCommon);
-    const queryTreeApp = queryTree.configure(this, pgDbeCommon);
-    const portainerApp = portainer.configure(this, this.common);
     const jwtValidatorApp = jwtValidator.configure(
       this,
       this.common,
@@ -76,15 +65,8 @@ export class AutoBaaS extends TypicalComposeConfig {
         dependsOn: [
           postgresExporterSvc,
           postGraphileSvc,
-          hasuraSvc,
           postgRestSvc,
-          swaggerApp,
-          esDBE,
-          telemetrySvc,
           adminerApp,
-          pgAdminApp,
-          queryTreeApp,
-          portainerApp,
           jwtValidatorApp,
           graphqlExporterApp,
         ],
