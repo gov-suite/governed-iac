@@ -1,14 +1,7 @@
 import { adminerConfigurator as adminer } from "../app/adminer.service.giac.ts";
 import { jwtValidatorConfigurator as jwtValidator } from "../app/jwt-validator.service.giac.ts";
-import { pgAdminConfigurator as pgAdmin } from "../app/pgAdmin.service.giac.ts";
-import { portainerConfigurator as portainer } from "../app/portainer.service.giac.ts";
-import { queryTreeConfigurator as queryTree } from "../app/queryTree.service.giac.ts";
-import { swaggerConfigurator as swagger } from "../app/swagger-app.service.giac.ts";
 import type { contextMgr as cm } from "../deps.ts";
-import { openTelemetryConfigurator as ot } from "../observability/openTelemetry.service.giac.ts";
-import { elasticSearchConfigurator as elasticSearch } from "../persistence/elasticSearch-engine.service.giac.ts";
 import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
-import { hasuraConfigurator as hasura } from "../proxy/rdbms/hasura.service.giac.ts";
 import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphile.service.giac.ts";
 import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
 import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
