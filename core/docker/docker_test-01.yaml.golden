@@ -46,7 +46,7 @@ services:
       - postgresqlengine
     environment:
       DATA_SOURCE_NAME: >-
-        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:5432/${POSTGRESQLENGINE_DB}?sslmode=disable
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:${POSTGRESQLENGINE_PUBL_PORT:-5432}/${POSTGRESQLENGINE_DB}?sslmode=disable
     networks:
       - network
     labels:
