@@ -4,6 +4,7 @@ import {
   valueMgr as vm,
 } from "../deps.ts";
 import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
+import type { PostgreSqlConnectionConfig } from "../persistence/postgreSQL-engine.service.giac.ts";
 import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
@@ -18,6 +19,7 @@ export class PostgresExporterServiceConfig
 
   constructor(
     ctx: giac.ConfigContext,
+    readonly conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
   ) {
     super({ serviceName: "postgres-exporter", ...optionals });
@@ -32,18 +34,22 @@ export class PostgresExporterServiceConfig
           return 9187;
         }
       })();
-    this.environment.DATA_SOURCE_NAME =
-      "postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@postgresqlengine:5432/${POSTGRESQLENGINE_DB}?sslmode=disable";
+    this.environment.DATA_SOURCE_NAME = (
+      ctx: cm.Context,
+    ): string => {
+      return vm.resolveTextValue(ctx, conn.url) + "?sslmode=disable";
+    };
   }
 }
 
 export const postgresExporterConfigurator = new (class {
   configure(
     ctx: giac.ConfigContext,
+    conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
   ): PostgresExporterServiceConfig {
     return ctx.configured(
-      new PostgresExporterServiceConfig(ctx, optionals),
+      new PostgresExporterServiceConfig(ctx, conn, optionals),
     );
   }
 })();

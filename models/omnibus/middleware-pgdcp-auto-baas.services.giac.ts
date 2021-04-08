@@ -26,11 +26,19 @@ export class AutoBaaS extends TypicalComposeConfig {
     super(ctx);
 
     const rptvs = new TypicalReverseProxyTargetValuesSupplier(this);
-    const pgDBE = pg.configureDevlEngine(this, this.common);
-    const pgDbConn = pgDBE.connection();
-    const pgDbeCommon = { dependsOn: [pgDBE], ...this.common };
+
+    const pgDbConn = pg.configureConn(
+      "${POSTGRESQLENGINE_DB}",
+      {
+        user: "${POSTGRESQLENGINE_USER}",
+        password: "${POSTGRESQLENGINE_PASSWORD}",
+      },
+      "public",
+      "${POSTGRESQLENGINE_HOST}",
+      5432,
+    );
+    const pgDbeCommon = this.common;
     const postgresExporterSvc = postgresExporter.configure(this, pgDbConn, {
-      dependsOn: [pgDBE],
       ...this.common,
     });
     const postGraphileSvc = graphile.configure(
@@ -66,7 +74,6 @@ export class AutoBaaS extends TypicalComposeConfig {
       rptvs,
       {
         dependsOn: [
-          pgDBE,
           postgresExporterSvc,
           postGraphileSvc,
           hasuraSvc,
