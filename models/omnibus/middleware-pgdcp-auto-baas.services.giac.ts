@@ -2,7 +2,8 @@ import { adminerConfigurator as adminer } from "../app/adminer.service.giac.ts";
 import { jwtValidatorConfigurator as jwtValidator } from "../app/jwt-validator.service.giac.ts";
 import type { contextMgr as cm } from "../deps.ts";
 import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
-import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphile.service.giac.ts";
+import { postGraphileAnonymousConfigurator as postGraphileAnonymous } from "../proxy/rdbms/postGraphileAnonymousPgdcp.service.giac.ts";
+import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphilePgdcp.service.giac.ts";
 import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
 import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
 import { graphqlExporterConfigurator as graphqlExporter } from "../app/graphql-exporter.service.giac.ts";
@@ -34,18 +35,24 @@ export class AutoBaaS extends TypicalComposeConfig {
     const postgresExporterSvc = postgresExporter.configure(this, pgDbConn, {
       ...this.common,
     });
+    const postGraphileAnonymousSvc = postGraphileAnonymous.configure(
+      this,
+      pgDbConn,
+      postGraphileAnonymous.defaultPostgraphileOptions,
+      pgDbeCommon,
+    );
     const postGraphileSvc = graphile.configure(
       this,
       pgDbConn,
       graphile.defaultPostgraphileOptions,
       pgDbeCommon,
+      {
+        isReverseProxyTargetOptionsEnabled: true,
+        isReplaceAuth: true,
+      },
     );
     const postgRestSvc = postgREST.configure(this, pgDbConn, pgDbeCommon);
     const adminerApp = adminer.configure(this, pgDbeCommon);
-    const jwtValidatorApp = jwtValidator.configure(
-      this,
-      this.common,
-    );
     const graphqlExporterApp = graphqlExporter.configure(
       this,
       this.common,
@@ -57,16 +64,15 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         dependsOn: [
           postgresExporterSvc,
+          postGraphileAnonymousSvc,
           postGraphileSvc,
           postgRestSvc,
           adminerApp,
-          jwtValidatorApp,
           graphqlExporterApp,
         ],
         ...this.common,
       },
       false,
-      [jwtValidatorApp.serviceName],
     );
 
     this.finalize();
