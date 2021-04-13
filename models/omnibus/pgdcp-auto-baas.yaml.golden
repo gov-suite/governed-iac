@@ -2,11 +2,25 @@
 
 #
 # Environment variables allowed:
-#   * GITLAB_JWKS_URI - GitLab JSON Web Key Set URL endpoint, eg:- https://git.netspective.io/oauth/discovery/keys (required)
-#   * HOST_MACHINE_IP - IP of host machine for using in traefik contianer as hosts entry. (required)
+#   * POSTGRESQLENGINE_USER - pgDCP database user (required)
+#   * POSTGRESQLENGINE_PASSWORD - pgDCP database password (required)
+#   * POSTGRESQLENGINE_HOST - pgDCP database host (required)
+#   * POSTGRESQLENGINE_DB - pgDCP database name (required)
+#   * PGDCP_GIT_REPO_USERNAME - GitLab user (required)
+#   * PGDCP_GIT_REPO_TOKEN - GitLab user Token (required)
+#   * PGDCP_POSTGRAPHILE_ANONYMOUS_REPO - pgDCP postgraphile ananymous repository (required)
+#   * PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH - pgDCP postgraphile ananymous repository branch (required)
+#   * PGDCP_JWKS_URI - GitLab JSON Web Key Set URL endpoint, eg:- https://git.netspective.io/oauth/discovery/keys (required)
+#   * PGDCP_ISSUER - IDP endpoint URL (required)
+#   * PGDCP_ANONYMOUS_SCHEMA - pgDCP anonymous postgraphile schemas (required)
+#   * PGDCP_POSTGRAPHILE_REPO - pgDCP postgraphile shield repository (required)
+#   * PGDCP_POSTGRAPHILE_REPO_BRANCH - pgDCP postgraphile shield repository branch (required)
+#   * PGDCP_SCHEMA - pgDCP postgraphile schemas (required)
 #   * EP_EXECENV - Endpoints' execution environment name like sandbox, devl, test, demo, or prod (default sandbox)
 #   * EP_BOUNDARY - Endpoints' name of application or service (default appx)
 #   * EP_FQDNSUFFIX - Endpoints' Fully qualified domain name suffix (default docker.localhost)
+#   * POSTGRAPHILEANONYMOUS_PGDCP_EXPOSE_PORT - PGDCP POSTGRAPHILE ANONYMOUS EXPOSE PORT (default 5000)
+#   * POSTGRAPHILE_PGDCP_EXPOSE_PORT - PGDCP POSTGRAPHILE EXPOSE PORT (default 5000)
 
 version: '3.3'
 services:
@@ -26,37 +40,63 @@ services:
         Host(`${EP_EXECENV:-sandbox}.postgres-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.postgres-exporter.loadbalancer.server.port: 9187
+  postGraphileAnonymous:
+    container_name: middleware-rdbms-auto-baas_postGraphileAnonymous
+    build:
+      context: .
+      dockerfile: Dockerfile-postGraphileAnonymous
+      args:
+        PGDCP_GIT_REPO_USERNAME: '${PGDCP_GIT_REPO_USERNAME}'
+        PGDCP_GIT_REPO_TOKEN: '${PGDCP_GIT_REPO_TOKEN}'
+        PGDCP_POSTGRAPHILE_REPO: '${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO}'
+        PGDCP_POSTGRAPHILE_REPO_BRANCH: '${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH}'
+    image: 'middleware-rdbms-auto-baas_postgraphileanonymous:latest'
+    restart: always
+    ports:
+      - '${POSTGRAPHILEANONYMOUS_PGDCP_EXPOSE_PORT:-5000}:5000'
+    environment:
+      DATABASE_URL: >-
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:5432/${POSTGRESQLENGINE_DB}
+      JWKS_URI: '${PGDCP_JWKS_URI}'
+      ISSUER: '${PGDCP_ISSUER}'
+      SCHEMA: '${PGDCP_ANONYMOUS_SCHEMA}'
+      PORT: 5000
+    networks:
+      - network
+    labels:
+      traefik.http.routers.postGraphileAnonymous.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.postGraphileAnonymous.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.enable: true
   postGraphile:
     container_name: middleware-rdbms-auto-baas_postGraphile
     build:
       context: .
       dockerfile: Dockerfile-postGraphile
+      args:
+        PGDCP_GIT_REPO_USERNAME: '${PGDCP_GIT_REPO_USERNAME}'
+        PGDCP_GIT_REPO_TOKEN: '${PGDCP_GIT_REPO_TOKEN}'
+        PGDCP_POSTGRAPHILE_REPO: '${PGDCP_POSTGRAPHILE_REPO}'
+        PGDCP_POSTGRAPHILE_REPO_BRANCH: '${PGDCP_POSTGRAPHILE_REPO_BRANCH}'
     image: 'middleware-rdbms-auto-baas_postgraphile:latest'
     restart: always
+    ports:
+      - '${POSTGRAPHILE_PGDCP_EXPOSE_PORT:-5000}:5000'
+    environment:
+      DATABASE_URL: >-
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:5432/${POSTGRESQLENGINE_DB}
+      JWKS_URI: '${PGDCP_JWKS_URI}'
+      ISSUER: '${PGDCP_ISSUER}'
+      SCHEMA: '${PGDCP_SCHEMA}'
+      PORT: 5000
     networks:
       - network
-    command:
-      - '--cors'
-      - '--connection'
-      - >-
-        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:5432/${POSTGRESQLENGINE_DB}
-      - '--host'
-      - 0.0.0.0
-      - '--schema'
-      - public
-      - '--retry-on-init-fail'
-      - '--graphiql'
-      - /
-      - '--enhance-graphiql'
-      - '--simple-collections'
-      - both
-      - '--append-plugins'
-      - >-
-        @graphile-contrib/pg-simplify-inflector,postgraphile-plugin-connection-filter,@graphile-contrib/pg-order-by-related
     labels:
+      traefik.enable: true
       traefik.http.routers.postGraphile.rule: >-
         Host(`${EP_EXECENV:-sandbox}.postGraphile.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.enable: true
+        && (Path(`/shield/graphql`))
+      traefik.http.routers.postGraphile.middlewares: replacepath-middleware
+      traefik.http.middlewares.replacepath-middleware.replacepath.path: /graphql
   postgREST:
     container_name: middleware-rdbms-auto-baas_postgREST
     image: postgrest/postgrest
@@ -86,25 +126,6 @@ services:
         Host(`${EP_EXECENV:-sandbox}.adminer-app.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.adminer-app.loadbalancer.server.port: 8080
-  jwt-validator:
-    container_name: middleware-rdbms-auto-baas_jwt-validator
-    image: 'node:12'
-    restart: always
-    expose:
-      - '3000'
-    environment:
-      GITLAB_JWKS_URI: '${GITLAB_JWKS_URI}'
-    volumes:
-      - './jwt-validator.sh:/jwt-validator.sh:ro'
-    networks:
-      - network
-    command:
-      - /jwt-validator.sh
-    labels:
-      traefik.http.routers.jwt-validator.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.enable: true
-      traefik.http.services.jwt-validator.loadbalancer.server.port: 3000
   graphql-exporter:
     container_name: middleware-rdbms-auto-baas_graphql-exporter
     image: quay.io/ricardbejarano/graphql_exporter
@@ -128,16 +149,13 @@ services:
       - '8099:8080'
     depends_on:
       - postgres-exporter
+      - postGraphileAnonymous
       - postGraphile
       - postgREST
       - adminer-app
-      - jwt-validator
       - graphql-exporter
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
-    extra_hosts:
-      - >-
-        ${EP_EXECENV:-sandbox}.jwt-validator.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}:${HOST_MACHINE_IP}
     networks:
       - network
     command:
