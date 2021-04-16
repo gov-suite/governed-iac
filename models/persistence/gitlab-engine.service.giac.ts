@@ -13,7 +13,6 @@ export class GitlabServiceConfig extends TypicalImmutableServiceConfig {
   readonly proxyTargetValues: ReverseProxyTargetValuesSupplier;
   readonly ports?: giac.ServicePortsConfig;
   readonly volumes?: giac.ServiceVolumeConfig[];
-  readonly networks?: giac.ServiceNetworkConfig[];
 
   constructor(
     ctx: giac.ConfigContext,

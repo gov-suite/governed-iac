@@ -21,6 +21,8 @@
 #   * EP_FQDNSUFFIX - Endpoints' Fully qualified domain name suffix (default docker.localhost)
 #   * POSTGRAPHILEANONYMOUS_PGDCP_EXPOSE_PORT - PGDCP POSTGRAPHILE ANONYMOUS EXPOSE PORT (default 5000)
 #   * POSTGRAPHILE_PGDCP_EXPOSE_PORT - PGDCP POSTGRAPHILE EXPOSE PORT (default 5000)
+#   * POSTGRESTANONYMOUS_PGDCP_EXPOSE_PORT - POSTGRESTANONYMOUS PGDCP EXPOSE PORT (default 3000)
+#   * POSTGREST_PGDCP_EXPOSE_PORT - POSTGRESTANONYMOUS PGDCP EXPOSE PORT (default 3000)
 
 version: '3.3'
 services:
@@ -48,8 +50,8 @@ services:
       args:
         PGDCP_GIT_REPO_USERNAME: '${PGDCP_GIT_REPO_USERNAME}'
         PGDCP_GIT_REPO_TOKEN: '${PGDCP_GIT_REPO_TOKEN}'
-        PGDCP_POSTGRAPHILE_REPO: '${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO}'
-        PGDCP_POSTGRAPHILE_REPO_BRANCH: '${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH}'
+        PGDCP_POSTGRAPHILE_ANONYMOUS_REPO: '${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO}'
+        PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH: '${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH}'
     image: 'middleware-rdbms-auto-baas_postgraphileanonymous:latest'
     restart: always
     ports:
@@ -65,7 +67,7 @@ services:
       - network
     labels:
       traefik.http.routers.postGraphileAnonymous.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postGraphileAnonymous.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
   postGraphile:
     container_name: middleware-rdbms-auto-baas_postGraphile
@@ -91,26 +93,53 @@ services:
     networks:
       - network
     labels:
-      traefik.enable: true
       traefik.http.routers.postGraphile.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postGraphile.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
         && (Path(`/shield/graphql`))
-      traefik.http.routers.postGraphile.middlewares: replacepath-middleware
-      traefik.http.middlewares.replacepath-middleware.replacepath.path: /graphql
+      traefik.http.routers.postGraphileInterface.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && (Path(`/shield/graphql`))
+      traefik.enable: true
+  postgRESTAnonymous:
+    container_name: middleware-rdbms-auto-baas_postgRESTAnonymous
+    image: postgrest/postgrest
+    restart: always
+    ports:
+      - '${POSTGRESTANONYMOUS_PGDCP_EXPOSE_PORT:-3000}:3000'
+    environment:
+      PGRST_DB_URI: >-
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:5432/${POSTGRESQLENGINE_DB}
+      PGRST_DB_SCHEMA: '${PGDCP_ANONYMOUS_SCHEMA}'
+      PGRST_DB_ANON_ROLE: '${POSTGRESQLENGINE_USER}'
+    networks:
+      - network
+    labels:
+      traefik.http.routers.postgRESTAnonymous.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && (Path(`/api`))
+      traefik.http.routers.postgRESTAnonymous.middlewares: replacepath-middleware-postgRESTAnonymous
+      traefik.http.middlewares.replacepath-middleware.replacepath.path: /
+      traefik.enable: true
+      traefik.http.services.postgRESTAnonymous.loadbalancer.server.port: 3000
   postgREST:
     container_name: middleware-rdbms-auto-baas_postgREST
     image: postgrest/postgrest
     restart: always
+    ports:
+      - '${POSTGREST_PGDCP_EXPOSE_PORT:-3000}:3000'
     environment:
       PGRST_DB_URI: >-
         postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:5432/${POSTGRESQLENGINE_DB}
-      PGRST_DB_SCHEMA: public
+      PGRST_DB_SCHEMA: '${PGDCP_SCHEMA}'
       PGRST_DB_ANON_ROLE: '${POSTGRESQLENGINE_USER}'
     networks:
       - network
     labels:
       traefik.http.routers.postgREST.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postgREST.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && (Path(`/shield/api`))
+      traefik.http.routers.postgREST.middlewares: replacepath-middleware-postgREST
+      traefik.http.middlewares.replacepath-middleware.replacepath.path: /
       traefik.enable: true
       traefik.http.services.postgREST.loadbalancer.server.port: 3000
   adminer-app:
@@ -151,6 +180,7 @@ services:
       - postgres-exporter
       - postGraphileAnonymous
       - postGraphile
+      - postgRESTAnonymous
       - postgREST
       - adminer-app
       - graphql-exporter
