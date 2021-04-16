@@ -1,5 +1,4 @@
 import { adminerConfigurator as adminer } from "../app/adminer.service.giac.ts";
-import { jwtValidatorConfigurator as jwtValidator } from "../app/jwt-validator.service.giac.ts";
 import type { contextMgr as cm } from "../deps.ts";
 import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
 import { postGraphileAnonymousConfigurator as postGraphileAnonymous } from "../proxy/rdbms/postGraphileAnonymousPgdcp.service.giac.ts";

@@ -340,6 +340,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
             if (ra.replacepath) {
               sc.applyLabel(
                 "traefik.http.middlewares." + ra.backendMiddlewares +
+                  "-" + rpServiceName +
                   ".replacepath.path",
                 ra.replacepath,
               );
@@ -356,7 +357,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
             sc.applyLabel(
               "traefik.http.routers." + rpServiceName + "Interface" + ".rule",
               "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
-                " && (Path(`/shield/graphql`))",
+                " && (Path(`/shield/graphiql`))",
             );
           }
         } else if (rptOptionals?.isNoServiceName == true) {

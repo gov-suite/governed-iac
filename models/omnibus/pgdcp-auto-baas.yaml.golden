@@ -98,7 +98,7 @@ services:
         && (Path(`/shield/graphql`))
       traefik.http.routers.postGraphileInterface.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && (Path(`/shield/graphql`))
+        && (Path(`/shield/graphiql`))
       traefik.enable: true
   postgRESTAnonymous:
     container_name: middleware-rdbms-auto-baas_postgRESTAnonymous
@@ -118,7 +118,7 @@ services:
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
         && (Path(`/api`))
       traefik.http.routers.postgRESTAnonymous.middlewares: replacepath-middleware-postgRESTAnonymous
-      traefik.http.middlewares.replacepath-middleware.replacepath.path: /
+      traefik.http.middlewares.replacepath-middleware-postgRESTAnonymous.replacepath.path: /
       traefik.enable: true
       traefik.http.services.postgRESTAnonymous.loadbalancer.server.port: 3000
   postgREST:
@@ -139,7 +139,7 @@ services:
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
         && (Path(`/shield/api`))
       traefik.http.routers.postgREST.middlewares: replacepath-middleware-postgREST
-      traefik.http.middlewares.replacepath-middleware.replacepath.path: /
+      traefik.http.middlewares.replacepath-middleware-postgREST.replacepath.path: /
       traefik.enable: true
       traefik.http.services.postgREST.loadbalancer.server.port: 3000
   adminer-app:
