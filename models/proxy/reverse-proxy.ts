@@ -321,13 +321,13 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName + ".rule",
                 "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
-                  " && (Path(`/shield/api`))",
+                  " && Path(`/shield/api`)",
               );
             } else {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName + ".rule",
                 "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
-                  " && (Path(`/api`))",
+                  " && Path(`/api`)",
               );
             }
             if (ra.backendMiddlewares) {
@@ -352,12 +352,12 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
             sc.applyLabel(
               "traefik.http.routers." + rpServiceName + ".rule",
               "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
-                " && (Path(`/shield/graphql`))",
+                " && Path(`/shield/graphql`)",
             );
             sc.applyLabel(
               "traefik.http.routers." + rpServiceName + "Interface" + ".rule",
               "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
-                " && (Path(`/shield/graphiql`))",
+                " && Path(`/shield/graphiql`)",
             );
           }
         } else if (rptOptionals?.isNoServiceName == true) {
@@ -575,7 +575,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
         ? {
           isTraefikReplaceAuthOptionsEnabled: true,
           rule:
-            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && (Path(`/shield/api`))",
+            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && Path(`/shield/api`)",
           backendMiddlewares: "replacepath-middleware",
           replacepath: "/",
         }
@@ -587,7 +587,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
         ? {
           isTraefikReplaceAuthOptionsEnabled: true,
           rule:
-            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && (Path(`/api`))",
+            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && Path(`/api`)",
           backendMiddlewares: "replacepath-middleware",
           replacepath: "/",
         }

@@ -96,10 +96,10 @@ services:
     labels:
       traefik.http.routers.postGraphile.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && (Path(`/shield/graphql`))
+        && Path(`/shield/graphql`)
       traefik.http.routers.postGraphileInterface.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && (Path(`/shield/graphiql`))
+        && Path(`/shield/graphiql`)
       traefik.enable: true
   postgRESTAnonymous:
     container_name: middleware-rdbms-auto-baas_postgRESTAnonymous
@@ -117,7 +117,7 @@ services:
     labels:
       traefik.http.routers.postgRESTAnonymous.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && (Path(`/api`))
+        && Path(`/api`)
       traefik.http.routers.postgRESTAnonymous.middlewares: replacepath-middleware-postgRESTAnonymous
       traefik.http.middlewares.replacepath-middleware-postgRESTAnonymous.replacepath.path: /
       traefik.enable: true
@@ -138,7 +138,7 @@ services:
     labels:
       traefik.http.routers.postgREST.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && (Path(`/shield/api`))
+        && Path(`/shield/api`)
       traefik.http.routers.postgREST.middlewares: replacepath-middleware-postgREST
       traefik.http.middlewares.replacepath-middleware-postgREST.replacepath.path: /
       traefik.enable: true
