@@ -119,6 +119,10 @@ export class PostGraphileAnonymousServiceConfig
       "pgDCP database host",
     );
     ctx.envVars.requiredEnvVar(
+      "POSTGRESQLENGINE_PORT",
+      "pgDCP database port",
+    );
+    ctx.envVars.requiredEnvVar(
       "POSTGRESQLENGINE_DB",
       "pgDCP database name",
     );

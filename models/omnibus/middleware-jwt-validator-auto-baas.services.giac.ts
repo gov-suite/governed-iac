@@ -28,7 +28,7 @@ export class AutoBaaS extends TypicalComposeConfig {
 
     const rptvs = new TypicalReverseProxyTargetValuesSupplier(this);
     const pgDBE = pg.configureDevlEngine(this, this.common);
-    const pgDbConn = pgDBE.connection();
+    const pgDbConn = pgDBE.connection(this);
     const pgDbeCommon = { dependsOn: [pgDBE], ...this.common };
     const postGraphileSvc = graphile.configure(
       this,

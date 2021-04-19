@@ -29,7 +29,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       },
       "public",
       "${POSTGRESQLENGINE_HOST}",
-      5432,
+      "${POSTGRESQLENGINE_PORT}",
     );
     const pgDbeCommon = this.common;
     const postgresExporterSvc = postgresExporter.configure(this, pgDbConn, {
