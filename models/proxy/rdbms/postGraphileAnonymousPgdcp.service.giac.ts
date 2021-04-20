@@ -8,7 +8,10 @@ import {
 } from "../../deps.ts";
 import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
 import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
-import type { ReverseProxyTarget } from "../reverse-proxy.ts";
+import type {
+  ReverseProxyTarget,
+  ReverseProxyTargetOptions,
+} from "../reverse-proxy.ts";
 
 export interface PostGraphileOptions {
   readonly retryOnInitFail?: boolean;
@@ -45,10 +48,10 @@ export class CustomPostGraphileAnonymousServiceDockerfile
           `FROM node:14.15-alpine`,
           `ARG PGDCP_GIT_REPO_USERNAME`,
           `ARG PGDCP_GIT_REPO_TOKEN`,
-          `ARG PGDCP_POSTGRAPHILE_REPO`,
-          `ARG PGDCP_POSTGRAPHILE_REPO_BRANCH`,
+          `ARG PGDCP_POSTGRAPHILE_ANONYMOUS_REPO`,
+          `ARG PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH`,
           `RUN apk add git`,
-          "RUN git clone https://${PGDCP_GIT_REPO_USERNAME}:${PGDCP_GIT_REPO_TOKEN}@${PGDCP_POSTGRAPHILE_REPO} /src",
+          "RUN git clone https://${PGDCP_GIT_REPO_USERNAME}:${PGDCP_GIT_REPO_TOKEN}@${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO} /src",
           `WORKDIR /src`,
           `RUN git checkout master`,
           `RUN npm install`,
@@ -68,12 +71,14 @@ export class PostGraphileAnonymousServiceConfig
   readonly isProxyEnabled = true;
   readonly image: vm.TextValue | giac.ServiceBuildConfig;
   readonly ports: giac.ServicePublishPortConfig;
+  readonly reverseProxyTargetOptions?: ReverseProxyTargetOptions | undefined;
 
   constructor(
     ctx: giac.ConfigContext,
     readonly conn: PostgreSqlConnectionConfig,
     readonly options?: PostGraphileOptions,
     scOptionals?: giac.ServiceConfigOptionals,
+    proxyTargetOptions?: ReverseProxyTargetOptions,
   ) {
     super({ serviceName: "postGraphileAnonymous", ...scOptionals });
     this.image = options?.appendPlugins
@@ -85,8 +90,9 @@ export class PostGraphileAnonymousServiceConfig
         args: {
           PGDCP_GIT_REPO_USERNAME: "${PGDCP_GIT_REPO_USERNAME}",
           PGDCP_GIT_REPO_TOKEN: "${PGDCP_GIT_REPO_TOKEN}",
-          PGDCP_POSTGRAPHILE_REPO: "${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO}",
-          PGDCP_POSTGRAPHILE_REPO_BRANCH:
+          PGDCP_POSTGRAPHILE_ANONYMOUS_REPO:
+            "${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO}",
+          PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH:
             "${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH}",
         },
       }
@@ -111,6 +117,10 @@ export class PostGraphileAnonymousServiceConfig
     ctx.envVars.requiredEnvVar(
       "POSTGRESQLENGINE_HOST",
       "pgDCP database host",
+    );
+    ctx.envVars.requiredEnvVar(
+      "POSTGRESQLENGINE_PORT",
+      "pgDCP database port",
     );
     ctx.envVars.requiredEnvVar(
       "POSTGRESQLENGINE_DB",
@@ -153,6 +163,23 @@ export class PostGraphileAnonymousServiceConfig
       ),
       5000,
     );
+    this.reverseProxyTargetOptions = proxyTargetOptions;
+  }
+
+  get proxyTargetOptions(): ReverseProxyTargetOptions {
+    if (this.reverseProxyTargetOptions) {
+      return this.reverseProxyTargetOptions;
+    } else {
+      return {
+        isReverseProxyTargetOptionsEnabled: false,
+        isCors: false,
+        isForwardAuth: false,
+        isNonAuth: false,
+        isReplaceAuth: false,
+        isShieldAuth: false,
+        isNoServiceName: false,
+      };
+    }
   }
 
   get proxyTargetConfig(): giac.ServiceConfig {
@@ -184,6 +211,7 @@ export const postGraphileAnonymousConfigurator = new (class {
     conn: PostgreSqlConnectionConfig,
     options: PostGraphileOptions = this.defaultPostgraphileOptions,
     scOptionals?: giac.ServiceConfigOptionals,
+    proxyTargetOptions?: ReverseProxyTargetOptions,
   ): PostGraphileAnonymousServiceConfig {
     return ctx.configured(
       new PostGraphileAnonymousServiceConfig(
@@ -191,6 +219,7 @@ export const postGraphileAnonymousConfigurator = new (class {
         conn,
         options,
         scOptionals,
+        proxyTargetOptions,
       ),
     );
   }

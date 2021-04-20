@@ -41,7 +41,7 @@ export interface PostgreSqlConnectionConfig {
   readonly secrets: PostgreSqlConnectionSecrets;
   readonly schema: vm.TextValue;
   readonly host: vm.TextValue;
-  readonly hostPort: vm.NumericValue;
+  readonly hostPort: vm.TextValue;
   readonly url: vm.TextValue;
 }
 
@@ -103,7 +103,7 @@ export class PostgreSqlEngineServiceConfig
       },
       "public",
       this.serviceName,
-      this.ports.published,
+      vm.resolveNumericValueAsText(ctx, this.ports.published),
     );
     this.initDbVolume = {
       localFsPath: (ctx: cm.Context) => {
@@ -131,13 +131,15 @@ export class PostgreSqlEngineServiceConfig
     this.labels[key] = value;
   }
 
-  public connection(): PostgreSqlConnectionConfig {
+  public connection(
+    ctx: giac.ConfigContext,
+  ): PostgreSqlConnectionConfig {
     return postgreSqlConfigurator.configureConn(
       this.conn.dbName,
       this.conn.secrets,
       this.conn.schema,
       this.serviceName,
-      this.ports.published,
+      vm.resolveNumericValueAsText(ctx, this.ports.published),
     );
   }
 
@@ -459,7 +461,7 @@ export const postgreSqlConfigurator = new (class {
     secrets: PostgreSqlConnectionSecrets,
     schema: vm.TextValue = "public",
     host: vm.TextValue = "0.0.0.0",
-    hostPort: vm.NumericValue = 5432,
+    hostPort: vm.TextValue = "5432",
   ): PostgreSqlConnectionConfig {
     return new (class implements PostgreSqlConnectionConfig {
       readonly dbName = dbName;
@@ -470,12 +472,7 @@ export const postgreSqlConfigurator = new (class {
       readonly url = (ctx: cm.Context): string => {
         return `postgres://${this.secrets.user}:${this.secrets.password}@${
           vm.resolveTextValue(ctx, this.host)
-        }:${
-          vm.resolveNumericValueAsText(
-            ctx,
-            this.hostPort,
-          )
-        }/${this.dbName}`;
+        }:${this.hostPort}/${this.dbName}`;
       };
     })();
   }
@@ -492,7 +489,7 @@ export const postgreSqlConfigurator = new (class {
       },
       "public",
       "0.0.0.0",
-      5432,
+      "5432",
     );
   }
 

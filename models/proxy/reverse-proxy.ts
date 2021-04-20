@@ -50,6 +50,12 @@ export interface TraefikReplaceAuthOptions {
   readonly replacepath?: string;
 }
 
+export interface TraefikShieldAuthOptions {
+  readonly isTraefikShieldAuthOptionsEnabled?: boolean;
+  readonly rule?: string;
+  readonly interfaceRule?: string;
+}
+
 export interface TraefikServiceConfigOptionals
   extends giac.ServiceConfigOptionals {
   readonly isTraefikServiceConfigOptionals: true;
@@ -59,11 +65,15 @@ export interface TraefikServiceConfigOptionals
   readonly isForwardAuth?: boolean;
   readonly isNonAuth?: boolean;
   readonly isReplaceAuth?: boolean;
+  readonly isReplaceWithShield?: boolean;
+  readonly isShieldAuth?: boolean;
+  readonly isNoServiceName?: boolean;
   readonly routerOptions?: TraefikRouterOptions;
   readonly corsOptions?: TraefikCorsOptions;
   readonly forwardAuthOptions?: TraefikForwardAuthOptions;
   readonly nonAuthOptions?: TraefikNonAuthOptions;
   readonly replaceAuthOptions?: TraefikReplaceAuthOptions;
+  readonly shieldAuthOptions?: TraefikShieldAuthOptions;
 }
 
 export interface ReverseProxyTargetOptions {
@@ -72,6 +82,9 @@ export interface ReverseProxyTargetOptions {
   readonly isForwardAuth?: boolean;
   readonly isNonAuth?: boolean;
   readonly isReplaceAuth?: boolean;
+  readonly isReplaceWithShield?: boolean;
+  readonly isShieldAuth?: boolean;
+  readonly isNoServiceName?: boolean;
 }
 
 export interface ReverseProxyTarget {
@@ -304,41 +317,68 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
         if (rptOptionals?.isReplaceAuth == true) {
           if (rptOptionals?.replaceAuthOptions) {
             const ra = rptOptionals?.replaceAuthOptions;
-            sc.applyLabel("traefik.enable", true);
-            sc.applyLabel(
-              "traefik.http.routers." + rpServiceName + ".rule",
-              "Host(`" + this.targetHost(ctx, rpt) + "`)" +
-                " && (Path(`/shield/graphql`))",
-            );
+            if (rptOptionals?.isReplaceWithShield) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                  " && Path(`/shield/api`)",
+              );
+            } else {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                  " && Path(`/api`)",
+              );
+            }
             if (ra.backendMiddlewares) {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName +
                   ".middlewares",
-                ra.backendMiddlewares,
+                ra.backendMiddlewares + "-" + rpServiceName,
               );
             }
             if (ra.replacepath) {
               sc.applyLabel(
                 "traefik.http.middlewares." + ra.backendMiddlewares +
+                  "-" + rpServiceName +
                   ".replacepath.path",
                 ra.replacepath,
               );
             }
           }
+        } else if (rptOptionals?.isShieldAuth == true) {
+          if (rptOptionals?.shieldAuthOptions) {
+            const sa = rptOptionals?.shieldAuthOptions;
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName + ".rule",
+              "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                " && Path(`/shield/graphql`)",
+            );
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName + "Interface" + ".rule",
+              "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                " && Path(`/shield/graphiql`)",
+            );
+          }
+        } else if (rptOptionals?.isNoServiceName == true) {
+          sc.applyLabel(
+            "traefik.http.routers." + rpServiceName + ".rule",
+            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+          );
         } else {
           sc.applyLabel(
             "traefik.http.routers." + rpServiceName + ".rule",
             "Host(`" + this.targetHost(ctx, rpt) + "`)",
           );
-          sc.applyLabel("traefik.enable", true);
-          const proxiedPort = this.targetPort(ctx, rpt);
-          if (proxiedPort) {
-            sc.applyLabel(
-              "traefik.http.services." + rpServiceName +
-                ".loadbalancer.server.port",
-              proxiedPort,
-            );
-          }
+        }
+        sc.applyLabel("traefik.enable", true);
+        const proxiedPort = this.targetPort(ctx, rpt);
+        if (proxiedPort) {
+          sc.applyLabel(
+            "traefik.http.services." + rpServiceName +
+              ".loadbalancer.server.port",
+            proxiedPort,
+          );
         }
       }
       if (
@@ -528,17 +568,48 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
 
   traefikReplaceAuthOptions(
     isReplaceAuth?: boolean,
+    isReplaceWithShield?: boolean,
   ): TraefikReplaceAuthOptions {
-    return isReplaceAuth
+    if (isReplaceWithShield) {
+      return isReplaceAuth
+        ? {
+          isTraefikReplaceAuthOptionsEnabled: true,
+          rule:
+            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && Path(`/shield/api`)",
+          backendMiddlewares: "replacepath-middleware",
+          replacepath: "/",
+        }
+        : {
+          isTraefikReplaceAuthOptionsEnabled: false,
+        };
+    } else {
+      return isReplaceAuth
+        ? {
+          isTraefikReplaceAuthOptionsEnabled: true,
+          rule:
+            "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && Path(`/api`)",
+          backendMiddlewares: "replacepath-middleware",
+          replacepath: "/",
+        }
+        : {
+          isTraefikReplaceAuthOptionsEnabled: false,
+        };
+    }
+  }
+
+  traefikShieldAuthOptions(
+    isShieldAuth?: boolean,
+  ): TraefikShieldAuthOptions {
+    return isShieldAuth
       ? {
-        isTraefikReplaceAuthOptionsEnabled: true,
+        isTraefikShieldAuthOptionsEnabled: true,
         rule:
-          "Host(`${PGDCP_EP_EXECENV:-sandbox}.dcp.${PGDCP_EP_BOUNDARY:-appx}.${PGDCP_EP_FQDNSUFFIX:-docker.localhost}`) && (Path(`/shield/graphql`))",
-        backendMiddlewares: "replacepath-middleware",
-        replacepath: "/graphql",
+          "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && Path(`/shield/graphql`)",
+        interfaceRule:
+          "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`) && Path(`/shield/graphql`)",
       }
       : {
-        isTraefikReplaceAuthOptionsEnabled: false,
+        isTraefikShieldAuthOptionsEnabled: false,
       };
   }
 
@@ -550,6 +621,9 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
     isForwardAuth?: boolean,
     isNonAuth?: boolean,
     isReplaceAuth?: boolean,
+    isReplaceWithShield?: boolean,
+    isShieldAuth?: boolean,
+    isNoServiceName?: boolean,
   ): TraefikServiceConfigOptionals {
     const traefikServiceConfigOptionals: TraefikServiceConfigOptionals = {
       isTraefikServiceConfigOptionals: true,
@@ -559,6 +633,9 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       isForwardAuth: isForwardAuth,
       isNonAuth: isNonAuth,
       isReplaceAuth: isReplaceAuth,
+      isReplaceWithShield: isReplaceWithShield,
+      isShieldAuth: isShieldAuth,
+      isNoServiceName: isNoServiceName,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
       corsOptions: this.traefikCorsOptions(isCors),
       forwardAuthOptions: this.traefikForwardAuthOptions(
@@ -568,7 +645,13 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       nonAuthOptions: this.traefikNonAuthOptions(
         isNonAuth,
       ),
-      replaceAuthOptions: this.traefikReplaceAuthOptions(isReplaceAuth),
+      replaceAuthOptions: this.traefikReplaceAuthOptions(
+        isReplaceAuth,
+        isReplaceWithShield,
+      ),
+      shieldAuthOptions: this.traefikShieldAuthOptions(
+        isShieldAuth,
+      ),
     };
     return traefikServiceConfigOptionals;
   }
@@ -623,6 +706,9 @@ export const reverseProxyConfigurator = new (class {
                 rpt.proxyTargetOptions.isForwardAuth,
                 rpt.proxyTargetOptions.isNonAuth,
                 rpt.proxyTargetOptions.isReplaceAuth,
+                rpt.proxyTargetOptions.isReplaceWithShield,
+                rpt.proxyTargetOptions.isShieldAuth,
+                rpt.proxyTargetOptions.isNoServiceName,
               ),
             );
           } else {

@@ -1,10 +1,10 @@
 import { adminerConfigurator as adminer } from "../app/adminer.service.giac.ts";
-import { jwtValidatorConfigurator as jwtValidator } from "../app/jwt-validator.service.giac.ts";
 import type { contextMgr as cm } from "../deps.ts";
 import { postgreSqlConfigurator as pg } from "../persistence/postgreSQL-engine.service.giac.ts";
 import { postGraphileAnonymousConfigurator as postGraphileAnonymous } from "../proxy/rdbms/postGraphileAnonymousPgdcp.service.giac.ts";
 import { postGraphileConfigurator as graphile } from "../proxy/rdbms/postGraphilePgdcp.service.giac.ts";
-import { postgRestConfigurator as postgREST } from "../proxy/rdbms/postgREST.service.giac.ts";
+import { postgRestAnonymousPgdcpConfigurator as postgRESTAnonymousPgdcp } from "../proxy/rdbms/postgRESTAnonymousPgdcp.service.giac.ts";
+import { postgRestPgdcpConfigurator as postgRESTPgdcp } from "../proxy/rdbms/postgRESTPgdcp.service.giac.ts";
 import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
 import { graphqlExporterConfigurator as graphqlExporter } from "../app/graphql-exporter.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
@@ -29,7 +29,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       },
       "public",
       "${POSTGRESQLENGINE_HOST}",
-      5432,
+      "${POSTGRESQLENGINE_PORT}",
     );
     const pgDbeCommon = this.common;
     const postgresExporterSvc = postgresExporter.configure(this, pgDbConn, {
@@ -40,6 +40,10 @@ export class AutoBaaS extends TypicalComposeConfig {
       pgDbConn,
       postGraphileAnonymous.defaultPostgraphileOptions,
       pgDbeCommon,
+      {
+        isReverseProxyTargetOptionsEnabled: true,
+        isNoServiceName: true,
+      },
     );
     const postGraphileSvc = graphile.configure(
       this,
@@ -48,10 +52,28 @@ export class AutoBaaS extends TypicalComposeConfig {
       pgDbeCommon,
       {
         isReverseProxyTargetOptionsEnabled: true,
+        isShieldAuth: true,
+      },
+    );
+    const postgRestAnonymousPgdcpSvc = postgRESTAnonymousPgdcp.configure(
+      this,
+      pgDbConn,
+      pgDbeCommon,
+      {
+        isReverseProxyTargetOptionsEnabled: true,
         isReplaceAuth: true,
       },
     );
-    const postgRestSvc = postgREST.configure(this, pgDbConn, pgDbeCommon);
+    const postgRESTPgdcpSvc = postgRESTPgdcp.configure(
+      this,
+      pgDbConn,
+      pgDbeCommon,
+      {
+        isReverseProxyTargetOptionsEnabled: true,
+        isReplaceAuth: true,
+        isReplaceWithShield: true,
+      },
+    );
     const adminerApp = adminer.configure(this, pgDbeCommon);
     const graphqlExporterApp = graphqlExporter.configure(
       this,
@@ -66,7 +88,8 @@ export class AutoBaaS extends TypicalComposeConfig {
           postgresExporterSvc,
           postGraphileAnonymousSvc,
           postGraphileSvc,
-          postgRestSvc,
+          postgRestAnonymousPgdcpSvc,
+          postgRESTPgdcpSvc,
           adminerApp,
           graphqlExporterApp,
         ],
