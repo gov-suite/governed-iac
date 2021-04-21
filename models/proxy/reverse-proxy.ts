@@ -179,6 +179,10 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       this.volumes = [
         this.initDbVolume,
       ];
+      ctx.envVars.requiredEnvVar(
+        "LETSENCRYPT_SSL_EMAIL_ID",
+        "Email id for ACME Let's Encrypt certificates for https endpoints",
+      );
     } else {
       this.command = [
         "--providers.docker",
