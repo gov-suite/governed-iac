@@ -1,48 +1,26 @@
-import {
-  contextMgr as cm,
-  governedIaCCore as giac,
-  valueMgr as vm,
-} from "../../deps.ts";
-import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
+import type { governedIaCCore as giac } from "../deps.ts";
 import type {
   ProxiedPort,
+  ReverseProxyTarget,
   ReverseProxyTargetOptions,
   ReverseProxyTargetValuesSupplier,
-} from "../../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
+} from "../proxy/reverse-proxy.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
-export class PostgRestAnonymousPgdcpServiceConfig
-  extends TypicalImmutableServiceConfig {
-  readonly image = "postgrest/postgrest";
+export class checkifeMailExistsServiceConfig
+  extends TypicalImmutableServiceConfig
+  implements ReverseProxyTarget {
+  readonly image = "reacherhq/check-if-email-exists:latest";
   readonly isProxyEnabled = true;
   readonly proxyTargetValues: ReverseProxyTargetValuesSupplier;
-  readonly ports: giac.ServicePublishPortConfig;
   readonly reverseProxyTargetOptions?: ReverseProxyTargetOptions | undefined;
 
   constructor(
     ctx: giac.ConfigContext,
-    readonly conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
     proxyTargetOptions?: ReverseProxyTargetOptions,
   ) {
-    super({ serviceName: "postgRESTAnonymous", ...optionals });
-    this.environment.PGRST_DB_URI = (
-      ctx: cm.Context,
-    ): string => {
-      return vm.resolveTextValue(ctx, conn.url);
-    };
-    this.environment.PGRST_DB_SCHEMA = "${PGDCP_ANONYMOUS_SCHEMA}";
-    this.environment.PGRST_DB_ANON_ROLE = "${POSTGRESQLENGINE_USER}";
-
-    this.ports = giac.portsFactory.publishSingle(
-      ctx.envVars.defaultEnvVar(
-        "PGDCP_EXPOSE_PORT",
-        "POSTGRESTANONYMOUS PGDCP EXPOSE PORT",
-        3000,
-        this,
-      ),
-      3000,
-    );
+    super({ serviceName: "check-if-email-exists", ...optionals });
     this.proxyTargetValues =
       new (class implementsReverseProxyTargetValuesSupplier {
         readonly isReverseProxyTargetValuesSupplier = true;
@@ -72,20 +50,14 @@ export class PostgRestAnonymousPgdcpServiceConfig
   }
 }
 
-export const postgRestAnonymousPgdcpConfigurator = new (class {
+export const checkifeMailExistsConfigurator = new (class {
   configure(
     ctx: giac.ConfigContext,
-    conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
     proxyTargetOptions?: ReverseProxyTargetOptions,
-  ): PostgRestAnonymousPgdcpServiceConfig {
+  ): checkifeMailExistsServiceConfig {
     return ctx.configured(
-      new PostgRestAnonymousPgdcpServiceConfig(
-        ctx,
-        conn,
-        optionals,
-        proxyTargetOptions,
-      ),
+      new checkifeMailExistsServiceConfig(ctx, optionals, proxyTargetOptions),
     );
   }
 })();

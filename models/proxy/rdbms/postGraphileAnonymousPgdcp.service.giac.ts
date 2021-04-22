@@ -176,8 +176,10 @@ export class PostGraphileAnonymousServiceConfig
         isForwardAuth: false,
         isNonAuth: false,
         isReplaceAuth: false,
+        isReplaceWithShield: false,
         isShieldAuth: false,
         isNoServiceName: false,
+        isCheckeMailExists: false,
       };
     }
   }

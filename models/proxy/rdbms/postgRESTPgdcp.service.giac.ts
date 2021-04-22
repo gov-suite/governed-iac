@@ -65,6 +65,7 @@ export class PostgRestPgdcpServiceConfig extends TypicalImmutableServiceConfig {
         isReplaceWithShield: false,
         isShieldAuth: false,
         isNoServiceName: false,
+        isCheckeMailExists: false,
       };
     }
   }

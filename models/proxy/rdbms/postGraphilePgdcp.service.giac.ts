@@ -136,8 +136,10 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
         isForwardAuth: false,
         isNonAuth: false,
         isReplaceAuth: false,
+        isReplaceWithShield: false,
         isShieldAuth: false,
         isNoServiceName: false,
+        isCheckeMailExists: false,
       };
     }
   }

@@ -7,6 +7,7 @@ import { postgRestAnonymousPgdcpConfigurator as postgRESTAnonymousPgdcp } from "
 import { postgRestPgdcpConfigurator as postgRESTPgdcp } from "../proxy/rdbms/postgRESTPgdcp.service.giac.ts";
 import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
 import { graphqlExporterConfigurator as graphqlExporter } from "../app/graphql-exporter.service.giac.ts";
+import { checkifeMailExistsConfigurator as checkeMailConfigurator } from "../app/checkeMailExist.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -79,6 +80,10 @@ export class AutoBaaS extends TypicalComposeConfig {
       this,
       this.common,
     );
+    const checkeMailApp = checkeMailConfigurator.configure(this, this.common, {
+      isReverseProxyTargetOptionsEnabled: true,
+      isCheckeMailExists: true,
+    });
 
     rp.configure(
       this,
@@ -92,6 +97,7 @@ export class AutoBaaS extends TypicalComposeConfig {
           postgRESTPgdcpSvc,
           adminerApp,
           graphqlExporterApp,
+          checkeMailApp,
         ],
         ...this.common,
       },

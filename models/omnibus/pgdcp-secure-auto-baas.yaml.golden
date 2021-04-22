@@ -220,6 +220,23 @@ services:
       traefik.http.routers.graphql-exporter.tls.certresolver: default
       traefik.http.routers.graphql-exporter.rule: >-
         Host(`${EP_EXECENV:-sandbox}.graphql-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+  check-if-email-exists:
+    container_name: middleware-rdbms-auto-baas_check-if-email-exists
+    image: 'reacherhq/check-if-email-exists:latest'
+    restart: always
+    networks:
+      - network
+    labels:
+      traefik.enable: true
+      traefik.docker.network: network
+      traefik.http.routers.check-if-email-exists-https-redirect.entrypoints: http
+      traefik.http.routers.check-if-email-exists-https-redirect.rule: 'HostRegexp(`{any:.*}`)'
+      traefik.http.routers.check-if-email-exists-https-redirect.middlewares: check-if-email-exists-https-redirect
+      traefik.http.middlewares.check-if-email-exists-https-redirect.redirectscheme.scheme: https
+      traefik.http.services.check-if-email-exists-https-redirect.loadbalancer.server.port: 3000
+      traefik.http.routers.check-if-email-exists.entrypoints: https
+      traefik.http.routers.check-if-email-exists.tls.certresolver: default
+      traefik.http.routers.check-if-email-exists.rule: 'Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)'
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -236,6 +253,7 @@ services:
       - postgREST
       - adminer-app
       - graphql-exporter
+      - check-if-email-exists
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './acme.json:/acme.json'

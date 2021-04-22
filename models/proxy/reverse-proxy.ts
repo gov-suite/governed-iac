@@ -68,6 +68,7 @@ export interface TraefikServiceConfigOptionals
   readonly isReplaceWithShield?: boolean;
   readonly isShieldAuth?: boolean;
   readonly isNoServiceName?: boolean;
+  readonly isCheckeMailExists?: Boolean;
   readonly routerOptions?: TraefikRouterOptions;
   readonly corsOptions?: TraefikCorsOptions;
   readonly forwardAuthOptions?: TraefikForwardAuthOptions;
@@ -85,6 +86,7 @@ export interface ReverseProxyTargetOptions {
   readonly isReplaceWithShield?: boolean;
   readonly isShieldAuth?: boolean;
   readonly isNoServiceName?: boolean;
+  readonly isCheckeMailExists?: boolean;
 }
 
 export interface ReverseProxyTarget {
@@ -368,6 +370,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
                 "traefik.http.routers." + rpServiceName + ".rule",
                 "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
               );
+            } else if (rptOptionals?.isCheckeMailExists == true) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)",
+              );
             } else {
               if (ho.rule) {
                 sc.applyLabel(
@@ -429,6 +436,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
           sc.applyLabel(
             "traefik.http.routers." + rpServiceName + ".rule",
             "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+          );
+        } else if (rptOptionals?.isCheckeMailExists == true) {
+          sc.applyLabel(
+            "traefik.http.routers." + rpServiceName + ".rule",
+            "Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)",
           );
         } else {
           sc.applyLabel(
@@ -689,6 +701,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
     isReplaceWithShield?: boolean,
     isShieldAuth?: boolean,
     isNoServiceName?: boolean,
+    isCheckeMailExists?: boolean,
   ): TraefikServiceConfigOptionals {
     const traefikServiceConfigOptionals: TraefikServiceConfigOptionals = {
       isTraefikServiceConfigOptionals: true,
@@ -701,6 +714,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       isReplaceWithShield: isReplaceWithShield,
       isShieldAuth: isShieldAuth,
       isNoServiceName: isNoServiceName,
+      isCheckeMailExists: isCheckeMailExists,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
       corsOptions: this.traefikCorsOptions(isCors),
       forwardAuthOptions: this.traefikForwardAuthOptions(
@@ -774,6 +788,7 @@ export const reverseProxyConfigurator = new (class {
                 rpt.proxyTargetOptions.isReplaceWithShield,
                 rpt.proxyTargetOptions.isShieldAuth,
                 rpt.proxyTargetOptions.isNoServiceName,
+                rpt.proxyTargetOptions.isCheckeMailExists,
               ),
             );
           } else {
