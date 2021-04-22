@@ -169,16 +169,16 @@ services:
         Host(`${EP_EXECENV:-sandbox}.graphql-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.graphql-exporter.loadbalancer.server.port: 9199
-  check-if-email-exists:
-    container_name: middleware-rdbms-auto-baas_check-if-email-exists
+  email-validator:
+    container_name: middleware-rdbms-auto-baas_email-validator
     image: 'reacherhq/check-if-email-exists:latest'
     restart: always
     networks:
       - network
     labels:
-      traefik.http.routers.check-if-email-exists.rule: 'Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)'
+      traefik.http.routers.email-validator.rule: 'Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)'
       traefik.enable: true
-      traefik.http.services.check-if-email-exists.loadbalancer.server.port: 3000
+      traefik.http.services.email-validator.loadbalancer.server.port: 3000
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -195,7 +195,7 @@ services:
       - postgREST
       - adminer-app
       - graphql-exporter
-      - check-if-email-exists
+      - email-validator
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     networks:

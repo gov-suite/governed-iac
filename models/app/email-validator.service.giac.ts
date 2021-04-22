@@ -7,8 +7,7 @@ import type {
 } from "../proxy/reverse-proxy.ts";
 import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
-export class checkifeMailExistsServiceConfig
-  extends TypicalImmutableServiceConfig
+export class emailValidatorServiceConfig extends TypicalImmutableServiceConfig
   implements ReverseProxyTarget {
   readonly image = "reacherhq/check-if-email-exists:latest";
   readonly isProxyEnabled = true;
@@ -20,7 +19,7 @@ export class checkifeMailExistsServiceConfig
     optionals?: giac.ServiceConfigOptionals,
     proxyTargetOptions?: ReverseProxyTargetOptions,
   ) {
-    super({ serviceName: "check-if-email-exists", ...optionals });
+    super({ serviceName: "email-validator", ...optionals });
     this.proxyTargetValues =
       new (class implementsReverseProxyTargetValuesSupplier {
         readonly isReverseProxyTargetValuesSupplier = true;
@@ -50,14 +49,14 @@ export class checkifeMailExistsServiceConfig
   }
 }
 
-export const checkifeMailExistsConfigurator = new (class {
+export const emailValidatorConfigurator = new (class {
   configure(
     ctx: giac.ConfigContext,
     optionals?: giac.ServiceConfigOptionals,
     proxyTargetOptions?: ReverseProxyTargetOptions,
-  ): checkifeMailExistsServiceConfig {
+  ): emailValidatorServiceConfig {
     return ctx.configured(
-      new checkifeMailExistsServiceConfig(ctx, optionals, proxyTargetOptions),
+      new emailValidatorServiceConfig(ctx, optionals, proxyTargetOptions),
     );
   }
 })();
