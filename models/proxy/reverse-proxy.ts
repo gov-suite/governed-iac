@@ -303,17 +303,78 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
                 ho.entrypoints,
               );
             }
-            if (ho.rule) {
-              sc.applyLabel(
-                "traefik.http.routers." + rpServiceName + ".rule",
-                ho.rule,
-              );
-            }
             if (ho.tlsCertresolver) {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName + ".tls.certresolver",
                 ho.tlsCertresolver,
               );
+            }
+            if (rptOptionals?.isReplaceAuth == true) {
+              if (rptOptionals?.replaceAuthOptions) {
+                const ra = rptOptionals?.replaceAuthOptions;
+                if (rptOptionals?.isReplaceWithShield) {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName + ".rule",
+                    "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                      " && Path(`/shield/api`)",
+                  );
+                } else {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName + ".rule",
+                    "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                      " && Path(`/api`)",
+                  );
+                }
+                if (ra.backendMiddlewares) {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName +
+                      ".middlewares",
+                    ra.backendMiddlewares + "-" + rpServiceName,
+                  );
+                }
+                if (ra.replacepath) {
+                  sc.applyLabel(
+                    "traefik.http.middlewares." + ra.backendMiddlewares +
+                      "-" + rpServiceName +
+                      ".replacepath.path",
+                    ra.replacepath,
+                  );
+                }
+              }
+            } else if (rptOptionals?.isShieldAuth == true) {
+              if (rptOptionals?.shieldAuthOptions) {
+                const sa = rptOptionals?.shieldAuthOptions;
+                if (ho.tlsCertresolver) {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName + "Interface" +
+                      ".tls.certresolver",
+                    ho.tlsCertresolver,
+                  );
+                }
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + ".rule",
+                  "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                    " && Path(`/shield/graphql`)",
+                );
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + "Interface" +
+                    ".rule",
+                  "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                    " && Path(`/shield/graphiql`)",
+                );
+              }
+            } else if (rptOptionals?.isNoServiceName == true) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+              );
+            } else {
+              if (ho.rule) {
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + ".rule",
+                  ho.rule,
+                );
+              }
             }
           }
         }

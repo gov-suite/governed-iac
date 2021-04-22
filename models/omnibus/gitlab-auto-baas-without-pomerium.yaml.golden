@@ -46,9 +46,9 @@ services:
       traefik.http.middlewares.gitlab-https-redirect.redirectscheme.scheme: https
       traefik.http.services.gitlab-https-redirect.loadbalancer.server.port: 80
       traefik.http.routers.gitlab.entrypoints: https
+      traefik.http.routers.gitlab.tls.certresolver: default
       traefik.http.routers.gitlab.rule: >-
         Host(`${EP_EXECENV:-sandbox}.gitlab.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.gitlab.tls.certresolver: default
   postgREST:
     container_name: middleware-rdbms-auto-baas_postgREST
     image: postgrest/postgrest
@@ -68,9 +68,9 @@ services:
       traefik.http.middlewares.postgREST-https-redirect.redirectscheme.scheme: https
       traefik.http.services.postgREST-https-redirect.loadbalancer.server.port: 3000
       traefik.http.routers.postgREST.entrypoints: https
+      traefik.http.routers.postgREST.tls.certresolver: default
       traefik.http.routers.postgREST.rule: >-
         Host(`${EP_EXECENV:-sandbox}.postgREST.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.postgREST.tls.certresolver: default
   swagger-ui:
     container_name: middleware-rdbms-auto-baas_swagger-ui
     image: swaggerapi/swagger-ui
@@ -91,9 +91,9 @@ services:
       traefik.http.middlewares.swagger-ui-https-redirect.redirectscheme.scheme: https
       traefik.http.services.swagger-ui-https-redirect.loadbalancer.server.port: 8080
       traefik.http.routers.swagger-ui.entrypoints: https
+      traefik.http.routers.swagger-ui.tls.certresolver: default
       traefik.http.routers.swagger-ui.rule: >-
         Host(`${EP_EXECENV:-sandbox}.swagger-ui.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.swagger-ui.tls.certresolver: default
   adminer-app:
     container_name: middleware-rdbms-auto-baas_adminer-app
     image: adminer
@@ -111,9 +111,9 @@ services:
       traefik.http.middlewares.adminer-app-https-redirect.redirectscheme.scheme: https
       traefik.http.services.adminer-app-https-redirect.loadbalancer.server.port: 8080
       traefik.http.routers.adminer-app.entrypoints: https
+      traefik.http.routers.adminer-app.tls.certresolver: default
       traefik.http.routers.adminer-app.rule: >-
         Host(`${EP_EXECENV:-sandbox}.adminer-app.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.adminer-app.tls.certresolver: default
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
