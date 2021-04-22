@@ -53,7 +53,7 @@ export class CustomPostGraphileAnonymousServiceDockerfile
           `RUN apk add git`,
           "RUN git clone https://${PGDCP_GIT_REPO_USERNAME}:${PGDCP_GIT_REPO_TOKEN}@${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO} /src",
           `WORKDIR /src`,
-          `RUN git checkout master`,
+          "RUN git checkout ${PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH}",
           `RUN npm install`,
           `EXPOSE 5000`,
           `CMD [ "node", "server.js" ]`,
@@ -176,8 +176,10 @@ export class PostGraphileAnonymousServiceConfig
         isForwardAuth: false,
         isNonAuth: false,
         isReplaceAuth: false,
+        isReplaceWithShield: false,
         isShieldAuth: false,
         isNoServiceName: false,
+        isCheckeMailExists: false,
       };
     }
   }

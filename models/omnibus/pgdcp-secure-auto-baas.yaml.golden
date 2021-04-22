@@ -48,9 +48,9 @@ services:
       traefik.http.middlewares.postgres-exporter-https-redirect.redirectscheme.scheme: https
       traefik.http.services.postgres-exporter-https-redirect.loadbalancer.server.port: 9187
       traefik.http.routers.postgres-exporter.entrypoints: https
+      traefik.http.routers.postgres-exporter.tls.certresolver: default
       traefik.http.routers.postgres-exporter.rule: >-
         Host(`${EP_EXECENV:-sandbox}.postgres-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.postgres-exporter.tls.certresolver: default
   postGraphileAnonymous:
     container_name: middleware-rdbms-auto-baas_postGraphileAnonymous
     build:
@@ -82,9 +82,9 @@ services:
       traefik.http.routers.postGraphileAnonymous-https-redirect.middlewares: postGraphileAnonymous-https-redirect
       traefik.http.middlewares.postGraphileAnonymous-https-redirect.redirectscheme.scheme: https
       traefik.http.routers.postGraphileAnonymous.entrypoints: https
-      traefik.http.routers.postGraphileAnonymous.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postGraphileAnonymous.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.http.routers.postGraphileAnonymous.tls.certresolver: default
+      traefik.http.routers.postGraphileAnonymous.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
   postGraphile:
     container_name: middleware-rdbms-auto-baas_postGraphile
     build:
@@ -116,9 +116,14 @@ services:
       traefik.http.routers.postGraphile-https-redirect.middlewares: postGraphile-https-redirect
       traefik.http.middlewares.postGraphile-https-redirect.redirectscheme.scheme: https
       traefik.http.routers.postGraphile.entrypoints: https
-      traefik.http.routers.postGraphile.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postGraphile.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.http.routers.postGraphile.tls.certresolver: default
+      traefik.http.routers.postGraphileInterface.tls.certresolver: default
+      traefik.http.routers.postGraphile.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && Path(`/shield/graphql`)
+      traefik.http.routers.postGraphileInterface.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && Path(`/shield/graphiql`)
   postgRESTAnonymous:
     container_name: middleware-rdbms-auto-baas_postgRESTAnonymous
     image: postgrest/postgrest
@@ -141,9 +146,12 @@ services:
       traefik.http.middlewares.postgRESTAnonymous-https-redirect.redirectscheme.scheme: https
       traefik.http.services.postgRESTAnonymous-https-redirect.loadbalancer.server.port: 3000
       traefik.http.routers.postgRESTAnonymous.entrypoints: https
-      traefik.http.routers.postgRESTAnonymous.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postgRESTAnonymous.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.http.routers.postgRESTAnonymous.tls.certresolver: default
+      traefik.http.routers.postgRESTAnonymous.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && Path(`/api`)
+      traefik.http.routers.postgRESTAnonymous.middlewares: replacepath-middleware-postgRESTAnonymous
+      traefik.http.middlewares.replacepath-middleware-postgRESTAnonymous.replacepath.path: /
   postgREST:
     container_name: middleware-rdbms-auto-baas_postgREST
     image: postgrest/postgrest
@@ -166,9 +174,12 @@ services:
       traefik.http.middlewares.postgREST-https-redirect.redirectscheme.scheme: https
       traefik.http.services.postgREST-https-redirect.loadbalancer.server.port: 3000
       traefik.http.routers.postgREST.entrypoints: https
-      traefik.http.routers.postgREST.rule: >-
-        Host(`${EP_EXECENV:-sandbox}.postgREST.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.http.routers.postgREST.tls.certresolver: default
+      traefik.http.routers.postgREST.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && Path(`/shield/api`)
+      traefik.http.routers.postgREST.middlewares: replacepath-middleware-postgREST
+      traefik.http.middlewares.replacepath-middleware-postgREST.replacepath.path: /
   adminer-app:
     container_name: middleware-rdbms-auto-baas_adminer-app
     image: adminer
@@ -186,9 +197,9 @@ services:
       traefik.http.middlewares.adminer-app-https-redirect.redirectscheme.scheme: https
       traefik.http.services.adminer-app-https-redirect.loadbalancer.server.port: 8080
       traefik.http.routers.adminer-app.entrypoints: https
+      traefik.http.routers.adminer-app.tls.certresolver: default
       traefik.http.routers.adminer-app.rule: >-
         Host(`${EP_EXECENV:-sandbox}.adminer-app.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.adminer-app.tls.certresolver: default
   graphql-exporter:
     container_name: middleware-rdbms-auto-baas_graphql-exporter
     image: quay.io/ricardbejarano/graphql_exporter
@@ -206,9 +217,26 @@ services:
       traefik.http.middlewares.graphql-exporter-https-redirect.redirectscheme.scheme: https
       traefik.http.services.graphql-exporter-https-redirect.loadbalancer.server.port: 9199
       traefik.http.routers.graphql-exporter.entrypoints: https
+      traefik.http.routers.graphql-exporter.tls.certresolver: default
       traefik.http.routers.graphql-exporter.rule: >-
         Host(`${EP_EXECENV:-sandbox}.graphql-exporter.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-      traefik.http.routers.graphql-exporter.tls.certresolver: default
+  email-validator:
+    container_name: middleware-rdbms-auto-baas_email-validator
+    image: 'reacherhq/check-if-email-exists:latest'
+    restart: always
+    networks:
+      - network
+    labels:
+      traefik.enable: true
+      traefik.docker.network: network
+      traefik.http.routers.email-validator-https-redirect.entrypoints: http
+      traefik.http.routers.email-validator-https-redirect.rule: 'HostRegexp(`{any:.*}`)'
+      traefik.http.routers.email-validator-https-redirect.middlewares: email-validator-https-redirect
+      traefik.http.middlewares.email-validator-https-redirect.redirectscheme.scheme: https
+      traefik.http.services.email-validator-https-redirect.loadbalancer.server.port: 3000
+      traefik.http.routers.email-validator.entrypoints: https
+      traefik.http.routers.email-validator.tls.certresolver: default
+      traefik.http.routers.email-validator.rule: 'Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)'
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -225,6 +253,7 @@ services:
       - postgREST
       - adminer-app
       - graphql-exporter
+      - email-validator
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './acme.json:/acme.json'

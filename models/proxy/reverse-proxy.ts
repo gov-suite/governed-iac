@@ -68,6 +68,7 @@ export interface TraefikServiceConfigOptionals
   readonly isReplaceWithShield?: boolean;
   readonly isShieldAuth?: boolean;
   readonly isNoServiceName?: boolean;
+  readonly isCheckeMailExists?: Boolean;
   readonly routerOptions?: TraefikRouterOptions;
   readonly corsOptions?: TraefikCorsOptions;
   readonly forwardAuthOptions?: TraefikForwardAuthOptions;
@@ -85,6 +86,7 @@ export interface ReverseProxyTargetOptions {
   readonly isReplaceWithShield?: boolean;
   readonly isShieldAuth?: boolean;
   readonly isNoServiceName?: boolean;
+  readonly isCheckeMailExists?: boolean;
 }
 
 export interface ReverseProxyTarget {
@@ -303,17 +305,83 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
                 ho.entrypoints,
               );
             }
-            if (ho.rule) {
-              sc.applyLabel(
-                "traefik.http.routers." + rpServiceName + ".rule",
-                ho.rule,
-              );
-            }
             if (ho.tlsCertresolver) {
               sc.applyLabel(
                 "traefik.http.routers." + rpServiceName + ".tls.certresolver",
                 ho.tlsCertresolver,
               );
+            }
+            if (rptOptionals?.isReplaceAuth == true) {
+              if (rptOptionals?.replaceAuthOptions) {
+                const ra = rptOptionals?.replaceAuthOptions;
+                if (rptOptionals?.isReplaceWithShield) {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName + ".rule",
+                    "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                      " && Path(`/shield/api`)",
+                  );
+                } else {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName + ".rule",
+                    "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                      " && Path(`/api`)",
+                  );
+                }
+                if (ra.backendMiddlewares) {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName +
+                      ".middlewares",
+                    ra.backendMiddlewares + "-" + rpServiceName,
+                  );
+                }
+                if (ra.replacepath) {
+                  sc.applyLabel(
+                    "traefik.http.middlewares." + ra.backendMiddlewares +
+                      "-" + rpServiceName +
+                      ".replacepath.path",
+                    ra.replacepath,
+                  );
+                }
+              }
+            } else if (rptOptionals?.isShieldAuth == true) {
+              if (rptOptionals?.shieldAuthOptions) {
+                const sa = rptOptionals?.shieldAuthOptions;
+                if (ho.tlsCertresolver) {
+                  sc.applyLabel(
+                    "traefik.http.routers." + rpServiceName + "Interface" +
+                      ".tls.certresolver",
+                    ho.tlsCertresolver,
+                  );
+                }
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + ".rule",
+                  "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                    " && Path(`/shield/graphql`)",
+                );
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + "Interface" +
+                    ".rule",
+                  "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                    " && Path(`/shield/graphiql`)",
+                );
+              }
+            } else if (rptOptionals?.isNoServiceName == true) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+              );
+            } else if (rptOptionals?.isCheckeMailExists == true) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)",
+              );
+            } else {
+              if (ho.rule) {
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + ".rule",
+                  ho.rule,
+                );
+              }
             }
           }
         }
@@ -368,6 +436,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
           sc.applyLabel(
             "traefik.http.routers." + rpServiceName + ".rule",
             "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+          );
+        } else if (rptOptionals?.isCheckeMailExists == true) {
+          sc.applyLabel(
+            "traefik.http.routers." + rpServiceName + ".rule",
+            "Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)",
           );
         } else {
           sc.applyLabel(
@@ -628,6 +701,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
     isReplaceWithShield?: boolean,
     isShieldAuth?: boolean,
     isNoServiceName?: boolean,
+    isCheckeMailExists?: boolean,
   ): TraefikServiceConfigOptionals {
     const traefikServiceConfigOptionals: TraefikServiceConfigOptionals = {
       isTraefikServiceConfigOptionals: true,
@@ -640,6 +714,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       isReplaceWithShield: isReplaceWithShield,
       isShieldAuth: isShieldAuth,
       isNoServiceName: isNoServiceName,
+      isCheckeMailExists: isCheckeMailExists,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
       corsOptions: this.traefikCorsOptions(isCors),
       forwardAuthOptions: this.traefikForwardAuthOptions(
@@ -713,6 +788,7 @@ export const reverseProxyConfigurator = new (class {
                 rpt.proxyTargetOptions.isReplaceWithShield,
                 rpt.proxyTargetOptions.isShieldAuth,
                 rpt.proxyTargetOptions.isNoServiceName,
+                rpt.proxyTargetOptions.isCheckeMailExists,
               ),
             );
           } else {
