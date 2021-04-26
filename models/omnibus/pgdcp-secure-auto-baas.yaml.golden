@@ -237,6 +237,34 @@ services:
       traefik.http.routers.email-validator.entrypoints: https
       traefik.http.routers.email-validator.tls.certresolver: default
       traefik.http.routers.email-validator.rule: 'Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)'
+  swagger-ui:
+    container_name: middleware-rdbms-auto-baas_swagger-ui
+    image: swaggerapi/swagger-ui
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgRESTAnonymous
+      - postgREST
+    environment:
+      API_URL: >-
+        https://${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/api
+      BASE_URL: /doc/open-api
+    networks:
+      - network
+    labels:
+      traefik.enable: true
+      traefik.docker.network: network
+      traefik.http.routers.swagger-ui-https-redirect.entrypoints: http
+      traefik.http.routers.swagger-ui-https-redirect.rule: 'HostRegexp(`{any:.*}`)'
+      traefik.http.routers.swagger-ui-https-redirect.middlewares: swagger-ui-https-redirect
+      traefik.http.middlewares.swagger-ui-https-redirect.redirectscheme.scheme: https
+      traefik.http.services.swagger-ui-https-redirect.loadbalancer.server.port: 8080
+      traefik.http.routers.swagger-ui.entrypoints: https
+      traefik.http.routers.swagger-ui.tls.certresolver: default
+      traefik.http.routers.swagger-ui.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && PathPrefix(`/doc/open-api`)
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'

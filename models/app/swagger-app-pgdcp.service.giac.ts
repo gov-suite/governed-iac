@@ -1,54 +1,43 @@
-import {
-  contextMgr as cm,
-  governedIaCCore as giac,
-  valueMgr as vm,
-} from "../../deps.ts";
-import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
+import { governedIaCCore as giac } from "../deps.ts";
 import type {
   ProxiedPort,
   ReverseProxyTargetOptions,
   ReverseProxyTargetValuesSupplier,
-} from "../../proxy/reverse-proxy.ts";
-import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
+} from "../proxy/reverse-proxy.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
-export class PostgRestPgdcpServiceConfig extends TypicalImmutableServiceConfig {
-  readonly image = "postgrest/postgrest";
+export class SwaggerAppConfig extends TypicalImmutableServiceConfig {
+  readonly image = "swaggerapi/swagger-ui";
   readonly isProxyEnabled = true;
+  readonly ports: giac.ServicePortsConfig;
   readonly proxyTargetValues: ReverseProxyTargetValuesSupplier;
-  readonly ports: giac.ServicePublishPortConfig;
   readonly reverseProxyTargetOptions?: ReverseProxyTargetOptions | undefined;
 
   constructor(
-    ctx: giac.ConfigContext,
-    readonly conn: PostgreSqlConnectionConfig,
+    readonly isSecure: boolean,
     optionals?: giac.ServiceConfigOptionals,
     proxyTargetOptions?: ReverseProxyTargetOptions,
   ) {
-    super({ serviceName: "postgREST", ...optionals });
-    this.environment.PGRST_DB_URI = (
-      ctx: cm.Context,
-    ): string => {
-      return vm.resolveTextValue(ctx, conn.url);
-    };
-    this.environment.PGRST_DB_SCHEMA = "${PGDCP_SCHEMA}";
-    this.environment.PGRST_DB_ANON_ROLE = "${POSTGRESQLENGINE_USER}";
-
-    this.ports = giac.portsFactory.publishSingle(
-      ctx.envVars.defaultEnvVar(
-        "PGDCP_EXPOSE_PORT",
-        "POSTGRESTANONYMOUS PGDCP EXPOSE PORT",
-        3000,
-        this,
-      ),
-      3000,
-    );
+    super({ serviceName: "swagger-ui", ...optionals });
+    this.ports = [
+      giac.portsFactory.publishSingle(8080),
+    ];
     this.proxyTargetValues =
       new (class implementsReverseProxyTargetValuesSupplier {
         readonly isReverseProxyTargetValuesSupplier = true;
         proxiedPort(ctx: giac.ConfigContext): ProxiedPort {
-          return 3000;
+          // since both ports 80 and 8080 are exposed, we need to be explicit
+          return 8080;
         }
       })();
+    if (isSecure) {
+      this.environment.API_URL =
+        "https://${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/api";
+    } else {
+      this.environment.API_URL =
+        "http://${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/api";
+    }
+    this.environment.BASE_URL = "/doc/open-api";
     this.reverseProxyTargetOptions = proxyTargetOptions;
   }
 
@@ -72,15 +61,15 @@ export class PostgRestPgdcpServiceConfig extends TypicalImmutableServiceConfig {
   }
 }
 
-export const postgRestPgdcpConfigurator = new (class {
+export const swaggerConfigurator = new (class {
   configure(
     ctx: giac.ConfigContext,
-    conn: PostgreSqlConnectionConfig,
+    isSecure: boolean,
     optionals?: giac.ServiceConfigOptionals,
     proxyTargetOptions?: ReverseProxyTargetOptions,
-  ): PostgRestPgdcpServiceConfig {
+  ): SwaggerAppConfig {
     return ctx.configured(
-      new PostgRestPgdcpServiceConfig(ctx, conn, optionals, proxyTargetOptions),
+      new SwaggerAppConfig(isSecure, optionals, proxyTargetOptions),
     );
   }
 })();

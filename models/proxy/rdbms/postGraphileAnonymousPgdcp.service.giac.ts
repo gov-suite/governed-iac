@@ -180,6 +180,7 @@ export class PostGraphileAnonymousServiceConfig
         isShieldAuth: false,
         isNoServiceName: false,
         isCheckeMailExists: false,
+        isPathPrefix: false,
       };
     }
   }

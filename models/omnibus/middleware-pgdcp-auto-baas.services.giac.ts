@@ -8,6 +8,7 @@ import { postgRestPgdcpConfigurator as postgRESTPgdcp } from "../proxy/rdbms/pos
 import { postgresExporterConfigurator as postgresExporter } from "../persistence/postgres-exporter.service.giac.ts";
 import { graphqlExporterConfigurator as graphqlExporter } from "../app/graphql-exporter.service.giac.ts";
 import { emailValidatorConfigurator as emailValidatorConfigurator } from "../app/email-validator.service.giac.ts";
+import { swaggerConfigurator as swagger } from "../app/swagger-app-pgdcp.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -86,6 +87,18 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         isReverseProxyTargetOptionsEnabled: true,
         isCheckeMailExists: true,
+      },
+    );
+    const swaggerApp = swagger.configure(
+      this,
+      false,
+      {
+        dependsOn: [postgRestAnonymousPgdcpSvc, postgRESTPgdcpSvc],
+        ...this.common,
+      },
+      {
+        isReverseProxyTargetOptionsEnabled: true,
+        isPathPrefix: true,
       },
     );
 

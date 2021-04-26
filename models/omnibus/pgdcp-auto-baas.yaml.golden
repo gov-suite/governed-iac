@@ -179,6 +179,27 @@ services:
       traefik.http.routers.email-validator.rule: 'Host(`email.validation.infra.${EP_FQDNSUFFIX:-docker.localhost}`)'
       traefik.enable: true
       traefik.http.services.email-validator.loadbalancer.server.port: 3000
+  swagger-ui:
+    container_name: middleware-rdbms-auto-baas_swagger-ui
+    image: swaggerapi/swagger-ui
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgRESTAnonymous
+      - postgREST
+    environment:
+      API_URL: >-
+        http://${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}/api
+      BASE_URL: /doc/open-api
+    networks:
+      - network
+    labels:
+      traefik.http.routers.swagger-ui.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+        && PathPrefix(`/doc/open-api`)
+      traefik.enable: true
+      traefik.http.services.swagger-ui.loadbalancer.server.port: 8080
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
