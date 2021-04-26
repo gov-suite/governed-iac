@@ -67,6 +67,7 @@ export class PostgRestAnonymousPgdcpServiceConfig
         isShieldAuth: false,
         isNoServiceName: false,
         isCheckeMailExists: false,
+        isPathPrefix: false,
       };
     }
   }
