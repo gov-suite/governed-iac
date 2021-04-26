@@ -282,6 +282,7 @@ services:
       - adminer-app
       - graphql-exporter
       - email-validator
+      - swagger-ui
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './acme.json:/acme.json'

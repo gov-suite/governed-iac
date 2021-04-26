@@ -115,6 +115,7 @@ export class AutoBaaS extends TypicalComposeConfig {
           adminerApp,
           graphqlExporterApp,
           emailValidatorApp,
+          swaggerApp,
         ],
         ...this.common,
       },
