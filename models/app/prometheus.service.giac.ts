@@ -1,5 +1,6 @@
 import {
   artfPersist as ap,
+  contextMgr as cm,
   governedIaCCore as giac,
   polyglotArtfNature,
   valueMgr as vm,
@@ -10,23 +11,22 @@ export class PrometheusServiceConfig extends TypicalImmutableServiceConfig {
   readonly image = "prom/prometheus:latest";
   readonly isProxyEnabled = false;
   readonly volumes?: giac.ServiceVolumeConfig[];
+  readonly initDbVolume: giac.ServiceVolumeLocalFsPathConfig;
 
   constructor(
     ctx: giac.ConfigContext,
     optionals?: giac.ServiceConfigOptionals,
   ) {
     super({ serviceName: "prometheus", ...optionals });
-    this.volumes = [
-      {
-        mutable: {
-          isServiceVolumeMutable: true,
-          contentType: "Irrecoverable user generated and transactional content",
-          contentRecoveryType:
-            giac.MutableServiceVolumeContentRecoveryType.IRRECOVERABLE,
-        },
-        localVolName: "${PWD}/prometheus.yml",
-        containerFsPath: "/etc/prometheus/prometheus.yml",
+    this.initDbVolume = {
+      localFsPath: (ctx: cm.Context) => {
+        const pp = cm.isProjectContext(ctx) ? ctx.projectPath : ".";
+        return "${PWD}/prometheus.yml";
       },
+      containerFsPath: "/etc/prometheus/prometheus.yml",
+    };
+    this.volumes = [
+      this.initDbVolume,
     ];
   }
 
@@ -37,7 +37,7 @@ export class PrometheusServiceConfig extends TypicalImmutableServiceConfig {
   ): void {
     const mta = ph.createMutableTextArtifact(
       ctx,
-      { nature: polyglotArtfNature.shfileArtifact },
+      { nature: polyglotArtfNature.yamlArtifact },
     );
     mta.appendText(
       ctx,
@@ -60,7 +60,7 @@ export class PrometheusServiceConfig extends TypicalImmutableServiceConfig {
         ].join("\n"),
       ),
     );
-    ph.persistTextArtifact(ctx, "prometheus.sh", mta, { chmod: 0o755 });
+    ph.persistTextArtifact(ctx, "prometheus.yml", mta, { chmod: 0o755 });
   }
 }
 
