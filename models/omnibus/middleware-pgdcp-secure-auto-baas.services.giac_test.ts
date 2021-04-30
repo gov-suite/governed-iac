@@ -24,10 +24,11 @@ Deno.test(
       },
     );
 
-    ta.assertEquals(p.resultsMap.size, 4);
+    ta.assertEquals(p.resultsMap.size, 5);
     ta.assert(p.resultsMap.get("Dockerfile-postGraphileAnonymous"));
     ta.assert(p.resultsMap.get("Dockerfile-postGraphile"));
     ta.assert(p.resultsMap.get("acme.json"));
+    ta.assert(p.resultsMap.get("prometheus.yml"));
 
     const dockerCompose = p.resultsMap.get("docker-compose.yaml");
     ta.assert(dockerCompose);

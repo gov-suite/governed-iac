@@ -200,6 +200,38 @@ services:
         && PathPrefix(`/doc/open-api`)
       traefik.enable: true
       traefik.http.services.swagger-ui.loadbalancer.server.port: 8080
+  prometheus:
+    container_name: middleware-rdbms-auto-baas_prometheus
+    image: 'prom/prometheus:latest'
+    restart: always
+    volumes:
+      - '${PWD}/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+    networks:
+      - network
+  promscale:
+    container_name: middleware-rdbms-auto-baas_promscale
+    image: 'timescale/promscale:latest'
+    restart: always
+    depends_on:
+      - prometheus
+    environment:
+      PROMSCALE_DB_CONNECT_RETRIES: '10'
+      PROMSCALE_WEB_TELEMETRY_PATH: /metrics-text
+      PROMSCALE_DB_URI: >-
+        postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}?sslmode=disable
+    networks:
+      - network
+  github-exporter:
+    container_name: middleware-rdbms-auto-baas_github-exporter
+    image: 'infinityworks/github-exporter:latest'
+    restart: always
+    ports:
+      - '9171:9171'
+    environment:
+      REPOS: '${GITHUB_EXPORTER_REPOS}'
+      GITHUB_TOKEN: '${GITHUB_EXPORTER_TOKEN}'
+    networks:
+      - network
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
