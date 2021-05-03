@@ -110,7 +110,6 @@ export class AutoBaaS extends TypicalComposeConfig {
     );
     const promscaleApp = promscale.configure(
       this,
-      pgDbConn,
       { dependsOn: [prometheusApp], ...this.common },
     );
     const githubExporterApp = githubExporter.configure(

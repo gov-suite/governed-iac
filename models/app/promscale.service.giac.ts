@@ -1,9 +1,4 @@
-import {
-  contextMgr as cm,
-  governedIaCCore as giac,
-  valueMgr as vm,
-} from "../deps.ts";
-import type { PostgreSqlConnectionConfig } from "../persistence/postgreSQL-engine.service.giac.ts";
+import { governedIaCCore as giac } from "../deps.ts";
 import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 
 export class PromscaleServiceConfig extends TypicalImmutableServiceConfig {
@@ -12,26 +7,21 @@ export class PromscaleServiceConfig extends TypicalImmutableServiceConfig {
 
   constructor(
     ctx: giac.ConfigContext,
-    readonly conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
   ) {
     super({ serviceName: "promscale", ...optionals });
     this.environment.PROMSCALE_DB_CONNECT_RETRIES = "10";
     this.environment.PROMSCALE_WEB_TELEMETRY_PATH = "/metrics-text";
-    this.environment.PROMSCALE_DB_URI = (
-      ctx: cm.Context,
-    ): string => {
-      return vm.resolveTextValue(ctx, conn.url) + "?sslmode=disable";
-    };
+    this.environment.PROMSCALE_DB_URI =
+      "postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_PROMSCALE_DB}?sslmode=disable";
   }
 }
 
 export const promscaleConfigurator = new (class {
   configure(
     ctx: giac.ConfigContext,
-    conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
   ): PromscaleServiceConfig {
-    return ctx.configured(new PromscaleServiceConfig(ctx, conn, optionals));
+    return ctx.configured(new PromscaleServiceConfig(ctx, optionals));
   }
 })();
