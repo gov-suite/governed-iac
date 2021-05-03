@@ -9,6 +9,9 @@ import { postgresExporterConfigurator as postgresExporter } from "../persistence
 import { graphqlExporterConfigurator as graphqlExporter } from "../app/graphql-exporter.service.giac.ts";
 import { emailValidatorConfigurator as emailValidatorConfigurator } from "../app/email-validator.service.giac.ts";
 import { swaggerConfigurator as swagger } from "../app/swagger-app-pgdcp.service.giac.ts";
+import { prometheusConfigurator as prometheus } from "../app/prometheus.service.giac.ts";
+import { promscaleConfigurator as promscale } from "../app/promscale.service.giac.ts";
+import { githubExporterConfigurator as githubExporter } from "../persistence/github-exporter.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -100,6 +103,19 @@ export class AutoBaaS extends TypicalComposeConfig {
         isReverseProxyTargetOptionsEnabled: true,
         isPathPrefix: true,
       },
+    );
+    const prometheusApp = prometheus.configure(
+      this,
+      this.common,
+    );
+    const promscaleApp = promscale.configure(
+      this,
+      { dependsOn: [prometheusApp], ...this.common },
+    );
+    const githubExporterApp = githubExporter.configure(
+      this,
+      pgDbConn,
+      this.common,
     );
 
     rp.configure(
