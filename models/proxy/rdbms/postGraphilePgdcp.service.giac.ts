@@ -98,6 +98,8 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
     ): string => {
       return vm.resolveTextValue(ctx, conn.url);
     };
+    this.environment.OWNER_CONNECTION_STRING =
+      "postgres://${POSTGRESQLENGINE_OWNER_USER}:${POSTGRESQLENGINE_OWNER_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}";
     this.environment.SCHEMA = "${PGDCP_SCHEMA}";
     this.environment.PORT = 5000;
     ctx.envVars.requiredEnvVar(
