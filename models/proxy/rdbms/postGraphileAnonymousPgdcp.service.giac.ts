@@ -102,8 +102,6 @@ export class PostGraphileAnonymousServiceConfig
     ): string => {
       return vm.resolveTextValue(ctx, conn.url);
     };
-    this.environment.JWKS_URI = "${PGDCP_JWKS_URI}";
-    this.environment.ISSUER = "${PGDCP_ISSUER}";
     this.environment.SCHEMA = "${PGDCP_ANONYMOUS_SCHEMA}";
     this.environment.PORT = 5000;
     ctx.envVars.requiredEnvVar(
@@ -141,14 +139,6 @@ export class PostGraphileAnonymousServiceConfig
     ctx.envVars.requiredEnvVar(
       "PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH",
       "pgDCP postgraphile ananymous repository branch",
-    );
-    ctx.envVars.requiredEnvVar(
-      "PGDCP_JWKS_URI",
-      "GitLab JSON Web Key Set URL endpoint, eg:- https://git.netspective.io/oauth/discovery/keys",
-    );
-    ctx.envVars.requiredEnvVar(
-      "PGDCP_ISSUER",
-      "IDP endpoint URL",
     );
     ctx.envVars.requiredEnvVar(
       "PGDCP_ANONYMOUS_SCHEMA",
