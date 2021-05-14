@@ -4,17 +4,12 @@ import {
   valueMgr as vm,
 } from "../../deps.ts";
 import type { PostgreSqlConnectionConfig } from "../../persistence/postgreSQL-engine.service.giac.ts";
-import type {
-  ProxiedPort,
-  ReverseProxyTargetOptions,
-  ReverseProxyTargetValuesSupplier,
-} from "../../proxy/reverse-proxy.ts";
+import type { ReverseProxyTargetOptions } from "../../proxy/reverse-proxy.ts";
 import { TypicalImmutableServiceConfig } from "../../typical.giac.ts";
 
 export class PostgRestPgdcpServiceConfig extends TypicalImmutableServiceConfig {
   readonly image = "postgrest/postgrest";
   readonly isProxyEnabled = true;
-  readonly proxyTargetValues: ReverseProxyTargetValuesSupplier;
   readonly ports: giac.ServicePublishPortConfig;
   readonly reverseProxyTargetOptions?: ReverseProxyTargetOptions | undefined;
 
@@ -42,13 +37,6 @@ export class PostgRestPgdcpServiceConfig extends TypicalImmutableServiceConfig {
       ),
       3000,
     );
-    this.proxyTargetValues =
-      new (class implementsReverseProxyTargetValuesSupplier {
-        readonly isReverseProxyTargetValuesSupplier = true;
-        proxiedPort(ctx: giac.ConfigContext): ProxiedPort {
-          return 3000;
-        }
-      })();
     this.reverseProxyTargetOptions = proxyTargetOptions;
   }
 

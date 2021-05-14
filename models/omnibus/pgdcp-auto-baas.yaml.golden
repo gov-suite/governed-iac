@@ -11,8 +11,6 @@
 #   * PGDCP_GIT_REPO_TOKEN - GitLab user Token (required)
 #   * PGDCP_POSTGRAPHILE_ANONYMOUS_REPO - pgDCP postgraphile ananymous repository (required)
 #   * PGDCP_POSTGRAPHILE_ANONYMOUS_REPO_BRANCH - pgDCP postgraphile ananymous repository branch (required)
-#   * PGDCP_JWKS_URI - GitLab JSON Web Key Set URL endpoint, eg:- https://git.netspective.io/oauth/discovery/keys (required)
-#   * PGDCP_ISSUER - IDP endpoint URL (required)
 #   * PGDCP_ANONYMOUS_SCHEMA - pgDCP anonymous postgraphile schemas (required)
 #   * PGDCP_POSTGRAPHILE_REPO - pgDCP postgraphile shield repository (required)
 #   * PGDCP_POSTGRAPHILE_REPO_BRANCH - pgDCP postgraphile shield repository branch (required)
@@ -60,8 +58,6 @@ services:
     environment:
       DATABASE_URL: >-
         postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}
-      JWKS_URI: '${PGDCP_JWKS_URI}'
-      ISSUER: '${PGDCP_ISSUER}'
       SCHEMA: '${PGDCP_ANONYMOUS_SCHEMA}'
       PORT: 5000
     networks:
@@ -87,8 +83,8 @@ services:
     environment:
       DATABASE_URL: >-
         postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}
-      JWKS_URI: '${PGDCP_JWKS_URI}'
-      ISSUER: '${PGDCP_ISSUER}'
+      OWNER_CONNECTION_STRING: >-
+        postgres://${POSTGRESQLENGINE_OWNER_USER}:${POSTGRESQLENGINE_OWNER_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}
       SCHEMA: '${PGDCP_SCHEMA}'
       PORT: 5000
     networks:
@@ -117,11 +113,11 @@ services:
     labels:
       traefik.http.routers.postgRESTAnonymous.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && Path(`/api`)
+        && PathPrefix(`/api`)
       traefik.http.routers.postgRESTAnonymous.middlewares: replacepath-middleware-postgRESTAnonymous
-      traefik.http.middlewares.replacepath-middleware-postgRESTAnonymous.replacepath.path: /
+      traefik.http.middlewares.replacepath-middleware-postgRESTAnonymous.replacepathRegex.regex: ^/api(.*)
+      traefik.http.middlewares.replacepath-middleware-postgRESTAnonymous.replacepathRegex.replacement: $$1
       traefik.enable: true
-      traefik.http.services.postgRESTAnonymous.loadbalancer.server.port: 3000
   postgREST:
     container_name: middleware-rdbms-auto-baas_postgREST
     image: postgrest/postgrest
@@ -138,11 +134,11 @@ services:
     labels:
       traefik.http.routers.postgREST.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
-        && Path(`/shield/api`)
+        && PathPrefix(`/shield/api`)
       traefik.http.routers.postgREST.middlewares: replacepath-middleware-postgREST
-      traefik.http.middlewares.replacepath-middleware-postgREST.replacepath.path: /
+      traefik.http.middlewares.replacepath-middleware-postgREST.replacepathRegex.regex: ^/shield/api(.*)
+      traefik.http.middlewares.replacepath-middleware-postgREST.replacepathRegex.replacement: $$1
       traefik.enable: true
-      traefik.http.services.postgREST.loadbalancer.server.port: 3000
   adminer-app:
     container_name: middleware-rdbms-auto-baas_adminer-app
     image: adminer
