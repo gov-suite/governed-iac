@@ -39,7 +39,7 @@ export class AutoBaaS extends TypicalComposeConfig {
     const pgDbeCommon = this.common;
     const postgresExporterSvc = postgresExporter.configure(this, pgDbConn, {
       ...this.common,
-    });
+    }, true);
     const postGraphileAnonymousSvc = postGraphileAnonymous.configure(
       this,
       pgDbConn,
