@@ -13,7 +13,7 @@ export class PromscaleServiceConfig extends TypicalImmutableServiceConfig {
     this.environment.PROMSCALE_DB_CONNECT_RETRIES = "10";
     this.environment.PROMSCALE_WEB_TELEMETRY_PATH = "/metrics-text";
     this.environment.PROMSCALE_DB_URI =
-      "postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_PROMSCALE_DB}?sslmode=disable";
+      "postgres://${POSTGRESQLENGINE_OWNER_USER}:${POSTGRESQLENGINE_OWNER_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_PROMSCALE_DB}?sslmode=disable";
   }
 }
 

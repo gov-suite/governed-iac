@@ -21,6 +21,7 @@ export class PostgresExporterServiceConfig
     ctx: giac.ConfigContext,
     readonly conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
+    isOwnerPostgres?: boolean,
   ) {
     super({ serviceName: "postgres-exporter", ...optionals });
     this.ports = [
@@ -34,11 +35,16 @@ export class PostgresExporterServiceConfig
           return 9187;
         }
       })();
-    this.environment.DATA_SOURCE_NAME = (
-      ctx: cm.Context,
-    ): string => {
-      return vm.resolveTextValue(ctx, conn.url) + "?sslmode=disable";
-    };
+    if (isOwnerPostgres) {
+      this.environment.DATA_SOURCE_NAME =
+        "postgres://${POSTGRESQLENGINE_OWNER_USER}:${POSTGRESQLENGINE_OWNER_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}?sslmode=disable";
+    } else {
+      this.environment.DATA_SOURCE_NAME = (
+        ctx: cm.Context,
+      ): string => {
+        return vm.resolveTextValue(ctx, conn.url) + "?sslmode=disable";
+      };
+    }
   }
 }
 
@@ -47,9 +53,15 @@ export const postgresExporterConfigurator = new (class {
     ctx: giac.ConfigContext,
     conn: PostgreSqlConnectionConfig,
     optionals?: giac.ServiceConfigOptionals,
+    isOwnerPostgres?: boolean,
   ): PostgresExporterServiceConfig {
     return ctx.configured(
-      new PostgresExporterServiceConfig(ctx, conn, optionals),
+      new PostgresExporterServiceConfig(
+        ctx,
+        conn,
+        optionals,
+        isOwnerPostgres,
+      ),
     );
   }
 })();
