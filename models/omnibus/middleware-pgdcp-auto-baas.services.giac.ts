@@ -12,6 +12,7 @@ import { swaggerConfigurator as swagger } from "../app/swagger-app-pgdcp.service
 import { prometheusConfigurator as prometheus } from "../app/prometheus.service.giac.ts";
 import { promscaleConfigurator as promscale } from "../app/promscale.service.giac.ts";
 import { githubExporterConfigurator as githubExporter } from "../persistence/github-exporter.service.giac.ts";
+import { pgsvcExporterConfigurator as pgsvcExporter } from "../persistence/pgsvc-exporter.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -117,6 +118,10 @@ export class AutoBaaS extends TypicalComposeConfig {
       pgDbConn,
       this.common,
     );
+    const pgsvcExporterApp = pgsvcExporter.configure(
+      this,
+      this.common,
+    );
 
     rp.configure(
       this,
@@ -132,6 +137,7 @@ export class AutoBaaS extends TypicalComposeConfig {
           graphqlExporterApp,
           emailValidatorApp,
           swaggerApp,
+          pgsvcExporterApp,
         ],
         ...this.common,
       },
