@@ -6,7 +6,6 @@ export class PomeriumServiceConfig extends TypicalImmutableServiceConfig {
   readonly containerName = "middleware-gitlab-auto-baas_pomerium";
   readonly isProxyEnabled = true;
   readonly volumes?: giac.ServiceVolumeConfig[];
-  readonly networks?: giac.ServiceNetworkConfig[];
   readonly ports?: giac.ServiceExposePortConfig;
 
   constructor(

@@ -13,6 +13,8 @@ import { prometheusConfigurator as prometheus } from "../app/prometheus.service.
 import { promscaleConfigurator as promscale } from "../app/promscale.service.giac.ts";
 import { githubExporterConfigurator as githubExporter } from "../persistence/github-exporter.service.giac.ts";
 import { pgsvcExporterConfigurator as pgsvcExporter } from "../persistence/pgsvc-exporter.service.giac.ts";
+import { keycloakPostgreSQLEngineConfigurator as keycloakPostgreSQLEngine } from "../persistence/keycloak-postgreSQL-engine.service.giac.ts";
+import { KeycloakConfigurator as keycloak } from "../app/keycloak.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -122,6 +124,18 @@ export class AutoBaaS extends TypicalComposeConfig {
       this,
       this.common,
     );
+    const keycloakPostgreSQLEngineSvc = keycloakPostgreSQLEngine.configure(
+      this,
+      pgDbConn,
+      this.common,
+    );
+    const keycloakApp = keycloak.configure(
+      this,
+      {
+        dependsOn: [keycloakPostgreSQLEngineSvc],
+        ...this.common,
+      },
+    );
 
     rp.configure(
       this,
@@ -138,6 +152,8 @@ export class AutoBaaS extends TypicalComposeConfig {
           emailValidatorApp,
           swaggerApp,
           pgsvcExporterApp,
+          keycloakPostgreSQLEngineSvc,
+          keycloakApp,
         ],
         ...this.common,
       },
