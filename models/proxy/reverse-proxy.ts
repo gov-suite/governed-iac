@@ -57,6 +57,13 @@ export interface TraefikShieldAuthOptions {
   readonly interfaceRule?: string;
 }
 
+export interface TraefikPushGatewayAuthOptions {
+  readonly isTraefikPushGatewayAuthOptionsEnabled?: boolean;
+  readonly rule?: string;
+  readonly middlewares?: string;
+  readonly users?: string;
+}
+
 export interface TraefikServiceConfigOptionals
   extends giac.ServiceConfigOptionals {
   readonly isTraefikServiceConfigOptionals: true;
@@ -71,12 +78,14 @@ export interface TraefikServiceConfigOptionals
   readonly isNoServiceName?: boolean;
   readonly isCheckeMailExists?: Boolean;
   readonly isPathPrefix?: Boolean;
+  readonly isPushGatewayAuth?: Boolean;
   readonly routerOptions?: TraefikRouterOptions;
   readonly corsOptions?: TraefikCorsOptions;
   readonly forwardAuthOptions?: TraefikForwardAuthOptions;
   readonly nonAuthOptions?: TraefikNonAuthOptions;
   readonly replaceAuthOptions?: TraefikReplaceAuthOptions;
   readonly shieldAuthOptions?: TraefikShieldAuthOptions;
+  readonly pushGatewayAuthOptions?: TraefikPushGatewayAuthOptions;
 }
 
 export interface ReverseProxyTargetOptions {
@@ -90,6 +99,7 @@ export interface ReverseProxyTargetOptions {
   readonly isNoServiceName?: boolean;
   readonly isCheckeMailExists?: boolean;
   readonly isPathPrefix?: boolean;
+  readonly isPushGatewayAuth?: boolean;
 }
 
 export interface ReverseProxyTarget {
@@ -392,6 +402,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
                 "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
                   " && PathPrefix(`/doc/open-api`)",
               );
+            } else if (rptOptionals?.isPushGatewayAuth == true) {
+              sc.applyLabel(
+                "traefik.http.routers." + rpServiceName + ".rule",
+                "Host(`${EP_EXECENV:-sandbox}.pg-prom.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+              );
             } else {
               if (ho.rule) {
                 sc.applyLabel(
@@ -472,6 +487,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
             "traefik.http.routers." + rpServiceName + ".rule",
             "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
               " && PathPrefix(`/doc/open-api`)",
+          );
+        } else if (rptOptionals?.isPushGatewayAuth == true) {
+          sc.applyLabel(
+            "traefik.http.routers." + rpServiceName + ".rule",
+            "Host(`${EP_EXECENV:-sandbox}.pg-prom.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
           );
         } else {
           sc.applyLabel(
@@ -594,6 +614,24 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
               "traefik.http.middlewares." + no.backendMiddlewares +
                 ".replacepath.path",
               no.replacepath,
+            );
+          }
+        }
+      }
+      if (rptOptionals?.isPushGatewayAuth == true) {
+        if (rptOptionals?.pushGatewayAuthOptions) {
+          const pa = rptOptionals?.pushGatewayAuthOptions;
+          if (pa.middlewares) {
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName + ".middlewares",
+              rpServiceName + pa.middlewares,
+            );
+          }
+          if (pa.users) {
+            sc.applyLabel(
+              "traefik.http.middlewares." + rpServiceName + pa.middlewares +
+                ".basicauth.users",
+              pa.users,
             );
           }
         }
@@ -723,6 +761,23 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       };
   }
 
+  traefikPushGatewayAuthOptions(
+    isPushGatewayAuth?: boolean,
+  ): TraefikPushGatewayAuthOptions {
+    return isPushGatewayAuth
+      ? {
+        isTraefikPushGatewayAuthOptionsEnabled: true,
+        rule:
+          "Host(`${EP_EXECENV:-sandbox}.pg-prom.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)",
+        middlewares: "-auth",
+        users:
+          "${PGDCP_PUSHGATEWAY_BASIC_AUTH_USER}:${PGDCP_PUSHGATEWAY_BASIC_AUTH_HT_PASSWORD}",
+      }
+      : {
+        isTraefikPushGatewayAuthOptionsEnabled: false,
+      };
+  }
+
   traefikServiceConfigOptionals(
     ctx: giac.ConfigContext,
     rpt: ReverseProxyTarget,
@@ -736,6 +791,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
     isNoServiceName?: boolean,
     isCheckeMailExists?: boolean,
     isPathPrefix?: boolean,
+    isPushGatewayAuth?: boolean,
   ): TraefikServiceConfigOptionals {
     const traefikServiceConfigOptionals: TraefikServiceConfigOptionals = {
       isTraefikServiceConfigOptionals: true,
@@ -750,6 +806,7 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       isNoServiceName: isNoServiceName,
       isCheckeMailExists: isCheckeMailExists,
       isPathPrefix: isPathPrefix,
+      isPushGatewayAuth: isPushGatewayAuth,
       routerOptions: this.traefikRouterOptions(ctx, rpt, isSecure),
       corsOptions: this.traefikCorsOptions(isCors),
       forwardAuthOptions: this.traefikForwardAuthOptions(
@@ -765,6 +822,9 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
       ),
       shieldAuthOptions: this.traefikShieldAuthOptions(
         isShieldAuth,
+      ),
+      pushGatewayAuthOptions: this.traefikPushGatewayAuthOptions(
+        isPushGatewayAuth,
       ),
     };
     return traefikServiceConfigOptionals;
@@ -825,6 +885,7 @@ export const reverseProxyConfigurator = new (class {
                 rpt.proxyTargetOptions.isNoServiceName,
                 rpt.proxyTargetOptions.isCheckeMailExists,
                 rpt.proxyTargetOptions.isPathPrefix,
+                rpt.proxyTargetOptions.isPushGatewayAuth,
               ),
             );
           } else {

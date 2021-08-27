@@ -364,6 +364,29 @@ services:
       traefik.http.routers.keycloak.tls.certresolver: default
       traefik.http.routers.keycloak.rule: >-
         Host(`${EP_EXECENV:-sandbox}.keycloak.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+  pushGateway:
+    container_name: middleware-rdbms-auto-baas_pushGateway
+    image: 'prom/pushgateway:latest'
+    restart: always
+    depends_on:
+      - prometheus
+    networks:
+      - network
+    labels:
+      traefik.enable: true
+      traefik.docker.network: network
+      traefik.http.routers.pushGateway-https-redirect.entrypoints: http
+      traefik.http.routers.pushGateway-https-redirect.rule: 'HostRegexp(`{any:.*}`)'
+      traefik.http.routers.pushGateway-https-redirect.middlewares: pushGateway-https-redirect
+      traefik.http.middlewares.pushGateway-https-redirect.redirectscheme.scheme: https
+      traefik.http.services.pushGateway-https-redirect.loadbalancer.server.port: 9091
+      traefik.http.routers.pushGateway.entrypoints: https
+      traefik.http.routers.pushGateway.tls.certresolver: default
+      traefik.http.routers.pushGateway.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.pg-prom.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.http.routers.pushGateway.middlewares: pushGateway-auth
+      traefik.http.middlewares.pushGateway-auth.basicauth.users: >-
+        ${PGDCP_PUSHGATEWAY_BASIC_AUTH_USER}:${PGDCP_PUSHGATEWAY_BASIC_AUTH_HT_PASSWORD}
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -385,6 +408,7 @@ services:
       - pgsvc-exporter
       - keycloakPostgresqlEngine
       - keycloak
+      - pushGateway
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './acme.json:/acme.json'
