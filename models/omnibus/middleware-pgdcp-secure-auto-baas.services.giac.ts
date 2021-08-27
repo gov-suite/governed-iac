@@ -15,6 +15,7 @@ import { githubExporterConfigurator as githubExporter } from "../persistence/git
 import { pgsvcExporterConfigurator as pgsvcExporter } from "../persistence/pgsvc-exporter.service.giac.ts";
 import { keycloakPostgreSQLEngineConfigurator as keycloakPostgreSQLEngine } from "../persistence/keycloak-postgreSQL-engine.service.giac.ts";
 import { KeycloakConfigurator as keycloak } from "../app/keycloak.service.giac.ts";
+import { pushgatewayConfigurator as pushgateway } from "../app/pushgateway.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -136,6 +137,17 @@ export class AutoBaaS extends TypicalComposeConfig {
         ...this.common,
       },
     );
+    const pushgatewayApp = pushgateway.configure(
+      this,
+      {
+        dependsOn: [prometheusApp],
+        ...this.common,
+      },
+      {
+        isReverseProxyTargetOptionsEnabled: true,
+        isPushGatewayAuth: true,
+      },
+    );
 
     rp.configure(
       this,
@@ -154,6 +166,7 @@ export class AutoBaaS extends TypicalComposeConfig {
           pgsvcExporterApp,
           keycloakPostgreSQLEngineSvc,
           keycloakApp,
+          pushgatewayApp,
         ],
         ...this.common,
       },

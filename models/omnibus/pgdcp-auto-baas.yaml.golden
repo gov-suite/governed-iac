@@ -285,6 +285,22 @@ services:
         Host(`${EP_EXECENV:-sandbox}.keycloak.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
       traefik.enable: true
       traefik.http.services.keycloak.loadbalancer.server.port: 8080
+  pushGateway:
+    container_name: middleware-rdbms-auto-baas_pushGateway
+    image: 'prom/pushgateway:latest'
+    restart: always
+    depends_on:
+      - prometheus
+    networks:
+      - network
+    labels:
+      traefik.http.routers.pushGateway.rule: >-
+        Host(`${EP_EXECENV:-sandbox}.pg-prom.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.enable: true
+      traefik.http.services.pushGateway.loadbalancer.server.port: 9091
+      traefik.http.routers.pushGateway.middlewares: pushGateway-auth
+      traefik.http.middlewares.pushGateway-auth.basicauth.users: >-
+        ${PGDCP_PUSHGATEWAY_BASIC_AUTH_USER}:${PGDCP_PUSHGATEWAY_BASIC_AUTH_HT_PASSWORD}
   reverse-proxy:
     container_name: middleware-rdbms-auto-baas_reverse-proxy
     image: 'traefik:2.2'
@@ -306,6 +322,7 @@ services:
       - pgsvc-exporter
       - keycloakPostgresqlEngine
       - keycloak
+      - pushGateway
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
