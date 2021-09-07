@@ -70,6 +70,8 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
   readonly image: vm.TextValue | giac.ServiceBuildConfig;
   readonly ports: giac.ServicePublishPortConfig;
   readonly reverseProxyTargetOptions?: ReverseProxyTargetOptions | undefined;
+  readonly volumes?: giac.ServiceVolumeConfig[];
+  readonly extraHosts?: vm.TextValue[];
 
   constructor(
     ctx: giac.ConfigContext,
@@ -101,6 +103,11 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
     this.environment.OWNER_CONNECTION_STRING =
       "postgres://${POSTGRESQLENGINE_OWNER_USER}:${POSTGRESQLENGINE_OWNER_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}";
     this.environment.SCHEMA = "${PGDCP_SCHEMA}";
+    this.environment.KEYCLOAK_CLIENT_ID = "${KEYCLOAK_CLIENT_ID}";
+    this.environment.JWKS_URI =
+      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs";
+    this.environment.ISSUER =
+      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}";
     this.environment.PORT = 5000;
     ctx.envVars.requiredEnvVar(
       "PGDCP_POSTGRAPHILE_REPO",
@@ -124,6 +131,21 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
       5000,
     );
     this.reverseProxyTargetOptions = proxyTargetOptions;
+    this.volumes = [
+      {
+        localVolName: "postgraphileupload-storage",
+        containerFsPath: "/src/shield/src/uploads",
+        mutable: {
+          isServiceVolumeMutable: true,
+          contentType: "Irrecoverable user generated and transactional content",
+          contentRecoveryType:
+            giac.MutableServiceVolumeContentRecoveryType.IRRECOVERABLE,
+        },
+      },
+    ];
+    this.extraHosts = [
+      "${EP_EXECENV:-sandbox}.keycloak.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}:${HOST_MACHINE_IP}",
+    ];
   }
 
   get proxyTargetOptions(): ReverseProxyTargetOptions {

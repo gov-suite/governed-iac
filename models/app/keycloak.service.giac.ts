@@ -35,7 +35,20 @@ export class KeycloakConfig extends TypicalImmutableServiceConfig {
     this.environment.DB_PASSWORD = "${KEYCLOAK_DB_PASSWORD}";
     this.environment.KEYCLOAK_USER = "${KEYCLOAK_ADMIN_USER}";
     this.environment.KEYCLOAK_PASSWORD = "${KEYCLOAK_ADMIN_PASSWORD}";
+    this.environment.KEYCLOAK_CLIENT_ID = "${KEYCLOAK_CLIENT_ID}";
+    this.environment.JWKS_URI =
+      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs";
+    this.environment.ISSUER =
+      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}";
     this.environment.PROXY_ADDRESS_FORWARDING = true;
+    ctx.envVars.requiredEnvVar(
+      "JWKS_URI",
+      "Keycloak JWKS URL",
+    );
+    ctx.envVars.requiredEnvVar(
+      "ISSUER",
+      "Keycloak Realm URL",
+    );
   }
 }
 
