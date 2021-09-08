@@ -385,6 +385,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
                   "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
                     " && Path(`/shield/graphiql`)",
                 );
+                sc.applyLabel(
+                  "traefik.http.routers." + rpServiceName + "Uploads" + ".rule",
+                  "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                    " && PathPrefix(`/shield/src/uploads`)",
+                );
               }
             } else if (rptOptionals?.isNoServiceName == true) {
               sc.applyLabel(
@@ -470,6 +475,11 @@ export class ReverseProxyServiceConfig extends TypicalImmutableServiceConfig {
               "traefik.http.routers." + rpServiceName + "Interface" + ".rule",
               "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
                 " && Path(`/shield/graphiql`)",
+            );
+            sc.applyLabel(
+              "traefik.http.routers." + rpServiceName + "Uploads" + ".rule",
+              "Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)" +
+                " && PathPrefix(`/shield/src/uploads`)",
             );
           }
         } else if (rptOptionals?.isNoServiceName == true) {
