@@ -152,24 +152,7 @@ export class AutoBaaS extends TypicalComposeConfig {
     rp.configure(
       this,
       rptvs,
-      {
-        dependsOn: [
-          postgresExporterSvc,
-          postGraphileAnonymousSvc,
-          postGraphileSvc,
-          postgRestAnonymousPgdcpSvc,
-          postgRESTPgdcpSvc,
-          adminerApp,
-          graphqlExporterApp,
-          emailValidatorApp,
-          swaggerApp,
-          pgsvcExporterApp,
-          keycloakPostgreSQLEngineSvc,
-          keycloakApp,
-          pushgatewayApp,
-        ],
-        ...this.common,
-      },
+      this.common,
       false,
     );
 
