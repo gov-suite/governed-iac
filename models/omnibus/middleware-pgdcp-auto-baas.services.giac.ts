@@ -52,6 +52,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         isReverseProxyTargetOptionsEnabled: true,
         isNoServiceName: true,
+        isCors: true,
       },
     );
     const postGraphileSvc = graphile.configure(
@@ -62,6 +63,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         isReverseProxyTargetOptionsEnabled: true,
         isShieldAuth: true,
+        isCors: true,
       },
     );
     const postgRestAnonymousPgdcpSvc = postgRESTAnonymousPgdcp.configure(

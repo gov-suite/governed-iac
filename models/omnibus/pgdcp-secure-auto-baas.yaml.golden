@@ -87,6 +87,10 @@ services:
       traefik.http.routers.postGraphileAnonymous.tls.certresolver: default
       traefik.http.routers.postGraphileAnonymous.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
+      traefik.http.routers.postGraphileAnonymous.middlewares: postGraphileAnonymous-cors
+      traefik.http.middlewares.postGraphileAnonymous-cors.headers.customresponseheaders.Access-Control-Allow-Headers: '*'
+      traefik.http.middlewares.postGraphileAnonymous-cors.headers.customresponseheaders.Access-Control-Allow-Methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+      traefik.http.middlewares.postGraphileAnonymous-cors.headers.customresponseheaders.Access-Control-Allow-Origin: '*'
   postGraphile:
     container_name: middleware-rdbms-auto-baas_postGraphile
     build:
@@ -138,6 +142,10 @@ services:
       traefik.http.routers.postGraphileUploads.rule: >-
         Host(`${EP_EXECENV:-sandbox}.${EP_BOUNDARY:-appx}.${EP_FQDNSUFFIX:-docker.localhost}`)
         && PathPrefix(`/shield/src/uploads`)
+      traefik.http.routers.postGraphile.middlewares: postGraphile-cors
+      traefik.http.middlewares.postGraphile-cors.headers.customresponseheaders.Access-Control-Allow-Headers: '*'
+      traefik.http.middlewares.postGraphile-cors.headers.customresponseheaders.Access-Control-Allow-Methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+      traefik.http.middlewares.postGraphile-cors.headers.customresponseheaders.Access-Control-Allow-Origin: '*'
   postgRESTAnonymous:
     container_name: middleware-rdbms-auto-baas_postgRESTAnonymous
     image: postgrest/postgrest
