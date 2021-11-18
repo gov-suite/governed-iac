@@ -6,7 +6,6 @@ import {
 } from "../deps.ts";
 import type {
   ProxiedPort,
-  ReverseProxyTargetOptions,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
 import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
@@ -29,10 +28,10 @@ export class KeycloakConfig extends TypicalImmutableServiceConfig {
         }
       })();
     this.environment.DB_VENDOR = "postgres";
-    this.environment.DB_ADDR = "keycloakPostgresqlEngine:5432";
+    this.environment.DB_ADDR = "${POSTGRESQLENGINE_HOST}:5432";
     this.environment.DB_DATABASE = "pgdcp_keycloak";
-    this.environment.DB_USER = "${KEYCLOAK_DB_USER}";
-    this.environment.DB_PASSWORD = "${KEYCLOAK_DB_PASSWORD}";
+    this.environment.DB_USER = "${POSTGRESQLENGINE_OWNER_USER}";
+    this.environment.DB_PASSWORD = "${POSTGRESQLENGINE_OWNER_PASSWORD}";
     this.environment.KEYCLOAK_USER = "${KEYCLOAK_ADMIN_USER}";
     this.environment.KEYCLOAK_PASSWORD = "${KEYCLOAK_ADMIN_PASSWORD}";
     this.environment.KEYCLOAK_CLIENT_ID = "${KEYCLOAK_CLIENT_ID}";
