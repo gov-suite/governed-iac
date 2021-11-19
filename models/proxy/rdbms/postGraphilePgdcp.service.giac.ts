@@ -104,10 +104,8 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
       "postgres://${POSTGRESQLENGINE_OWNER_USER}:${POSTGRESQLENGINE_OWNER_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}";
     this.environment.SCHEMA = "${PGDCP_SCHEMA}";
     this.environment.KEYCLOAK_CLIENT_ID = "${KEYCLOAK_CLIENT_ID}";
-    this.environment.JWKS_URI =
-      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs";
-    this.environment.ISSUER =
-      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}";
+    this.environment.JWKS_URI = "${KEYCLOAK_SERVER_URL}/auth/realms/";
+    this.environment.ISSUER = "${KEYCLOAK_SERVER_URL}/auth/realms/";
     this.environment.PORT = 5000;
     ctx.envVars.requiredEnvVar(
       "PGDCP_POSTGRAPHILE_REPO",

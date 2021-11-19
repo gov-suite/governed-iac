@@ -13,9 +13,11 @@ import { prometheusConfigurator as prometheus } from "../app/prometheus.service.
 import { promscaleConfigurator as promscale } from "../app/promscale.service.giac.ts";
 import { githubExporterConfigurator as githubExporter } from "../persistence/github-exporter.service.giac.ts";
 import { pgsvcExporterConfigurator as pgsvcExporter } from "../persistence/pgsvc-exporter.service.giac.ts";
-import { keycloakPostgreSQLEngineConfigurator as keycloakPostgreSQLEngine } from "../persistence/keycloak-postgreSQL-engine.service.giac.ts";
 import { KeycloakConfigurator as keycloak } from "../app/keycloak.service.giac.ts";
 import { pushgatewayConfigurator as pushgateway } from "../app/pushgateway.service.giac.ts";
+import { unleashConfigurator as unleash } from "../app/unleash.service.giac.ts";
+import { openLdapConfigurator as openLdap } from "../app/openLdap.service.giac.ts";
+import { openprojectConfigurator as openproject } from "../app/openproject.service.giac.ts";
 import { reverseProxyConfigurator as rp } from "../proxy/reverse-proxy.ts";
 import {
   TypicalComposeConfig,
@@ -52,6 +54,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         isReverseProxyTargetOptionsEnabled: true,
         isNoServiceName: true,
+        isCors: true,
       },
     );
     const postGraphileSvc = graphile.configure(
@@ -62,6 +65,7 @@ export class AutoBaaS extends TypicalComposeConfig {
       {
         isReverseProxyTargetOptionsEnabled: true,
         isShieldAuth: true,
+        isCors: true,
       },
     );
     const postgRestAnonymousPgdcpSvc = postgRESTAnonymousPgdcp.configure(
@@ -125,17 +129,9 @@ export class AutoBaaS extends TypicalComposeConfig {
       this,
       this.common,
     );
-    const keycloakPostgreSQLEngineSvc = keycloakPostgreSQLEngine.configure(
-      this,
-      pgDbConn,
-      this.common,
-    );
     const keycloakApp = keycloak.configure(
       this,
-      {
-        dependsOn: [keycloakPostgreSQLEngineSvc],
-        ...this.common,
-      },
+      this.common,
     );
     const pushgatewayApp = pushgateway.configure(
       this,
@@ -147,6 +143,18 @@ export class AutoBaaS extends TypicalComposeConfig {
         isReverseProxyTargetOptionsEnabled: true,
         isPushGatewayAuth: true,
       },
+    );
+    const unleashApp = unleash.configure(
+      this,
+      this.common,
+    );
+    const openprojectApp = openproject.configure(
+      this,
+      this.common,
+    );
+    const openLdapApp = openLdap.configure(
+      this,
+      this.common,
     );
 
     rp.configure(

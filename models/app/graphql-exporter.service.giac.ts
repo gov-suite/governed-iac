@@ -3,14 +3,14 @@ import {
   governedIaCCore as giac,
   valueMgr as vm,
 } from "../deps.ts";
-import { TypicalPersistenceServiceConfig } from "../typical.giac.ts";
+import { TypicalImmutableServiceConfig } from "../typical.giac.ts";
 import type {
   ProxiedPort,
   ReverseProxyTargetValuesSupplier,
 } from "../proxy/reverse-proxy.ts";
 
 export class GraphqlExporterServiceConfig
-  extends TypicalPersistenceServiceConfig {
+  extends TypicalImmutableServiceConfig {
   readonly image = "quay.io/ricardbejarano/graphql_exporter";
   readonly ports?: giac.ServicePortsConfig;
   readonly isProxyEnabled = true;
