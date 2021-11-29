@@ -28,18 +28,18 @@ export class KeycloakConfig extends TypicalImmutableServiceConfig {
         }
       })();
     this.environment.DB_VENDOR = "postgres";
-    this.environment.DB_ADDR = "${POSTGRESQLENGINE_HOST}:5432";
-    this.environment.DB_DATABASE = "pgdcp_keycloak";
+    this.environment.DB_ADDR =
+      "${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}";
+    this.environment.DB_DATABASE = "${POSTGRESQLENGINE_KEYCLOAK_DB}";
     this.environment.DB_USER = "${POSTGRESQLENGINE_OWNER_USER}";
     this.environment.DB_PASSWORD = "${POSTGRESQLENGINE_OWNER_PASSWORD}";
     this.environment.KEYCLOAK_USER = "${KEYCLOAK_ADMIN_USER}";
     this.environment.KEYCLOAK_PASSWORD = "${KEYCLOAK_ADMIN_PASSWORD}";
-    this.environment.KEYCLOAK_CLIENT_ID = "${KEYCLOAK_CLIENT_ID}";
-    this.environment.JWKS_URI =
-      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs";
-    this.environment.ISSUER =
-      "${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}";
     this.environment.PROXY_ADDRESS_FORWARDING = true;
+    ctx.envVars.requiredEnvVar(
+      "POSTGRESQLENGINE_KEYCLOAK_DB",
+      "PgDCP keycloak database",
+    );
     ctx.envVars.requiredEnvVar(
       "JWKS_URI",
       "Keycloak JWKS URL",
