@@ -21,6 +21,7 @@
 #   * PGDCP_POSTGRAPHILE_REPO - pgDCP postgraphile shield repository (required)
 #   * PGDCP_POSTGRAPHILE_REPO_BRANCH - pgDCP postgraphile shield repository branch (required)
 #   * PGDCP_SCHEMA - pgDCP postgraphile schemas (required)
+#   * POSTGRESQLENGINE_KEYCLOAK_DB - PgDCP keycloak database (required)
 #   * JWKS_URI - Keycloak JWKS URL (required)
 #   * ISSUER - Keycloak Realm URL (required)
 #   * POSTGRESQLENGINE_UNLEASH_DB - PgDCP unleash database (required)
@@ -357,16 +358,12 @@ services:
     restart: always
     environment:
       DB_VENDOR: postgres
-      DB_ADDR: '${POSTGRESQLENGINE_HOST}:5432'
-      DB_DATABASE: pgdcp_keycloak
+      DB_ADDR: '${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}'
+      DB_DATABASE: '${POSTGRESQLENGINE_KEYCLOAK_DB}'
       DB_USER: '${POSTGRESQLENGINE_OWNER_USER}'
       DB_PASSWORD: '${POSTGRESQLENGINE_OWNER_PASSWORD}'
       KEYCLOAK_USER: '${KEYCLOAK_ADMIN_USER}'
       KEYCLOAK_PASSWORD: '${KEYCLOAK_ADMIN_PASSWORD}'
-      KEYCLOAK_CLIENT_ID: '${KEYCLOAK_CLIENT_ID}'
-      JWKS_URI: >-
-        ${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
-      ISSUER: '${KEYCLOAK_SERVER_URL}/auth/realms/${KEYCLOAK_REALM}'
       PROXY_ADDRESS_FORWARDING: 'true'
     networks:
       - network
@@ -447,7 +444,7 @@ services:
       traefik.http.routers.openproject-https-redirect.rule: 'HostRegexp(`{any:.*}`)'
       traefik.http.routers.openproject-https-redirect.middlewares: openproject-https-redirect
       traefik.http.middlewares.openproject-https-redirect.redirectscheme.scheme: https
-      traefik.http.services.openproject-https-redirect.loadbalancer.server.port: 80
+      traefik.http.services.openproject-https-redirect.loadbalancer.server.port: 8080
       traefik.http.routers.openproject.entrypoints: https
       traefik.http.routers.openproject.tls.certresolver: default
       traefik.http.routers.openproject.rule: >-

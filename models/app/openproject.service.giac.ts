@@ -25,7 +25,7 @@ export class OpenprojectConfig extends TypicalImmutableServiceConfig {
       new (class implementsReverseProxyTargetValuesSupplier {
         readonly isReverseProxyTargetValuesSupplier = true;
         proxiedPort(ctx: giac.ConfigContext): ProxiedPort {
-          return 80;
+          return 8080;
         }
       })();
     this.volumes = [
