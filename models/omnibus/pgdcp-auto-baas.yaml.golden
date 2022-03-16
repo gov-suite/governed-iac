@@ -75,6 +75,8 @@ services:
         postgres://${POSTGRESQLENGINE_USER}:${POSTGRESQLENGINE_PASSWORD}@${POSTGRESQLENGINE_HOST}:${POSTGRESQLENGINE_PORT}/${POSTGRESQLENGINE_DB}
       SCHEMA: '${PGDCP_ANONYMOUS_SCHEMA}'
       PORT: 5000
+      DOMAIN: '${PGDCP_POSTGRAPHILE_COOKIE_DOMAIN}'
+      COOKIE_MAXAGE: '${PGDCP_POSTGRAPHILE_COOKIE_MAXAGE}'
     networks:
       - network
     labels:
@@ -109,6 +111,8 @@ services:
       JWKS_URI: '${KEYCLOAK_SERVER_URL}/auth/realms/'
       ISSUER: '${KEYCLOAK_SERVER_URL}/auth/realms/'
       PORT: 5000
+      DOMAIN: '${PGDCP_POSTGRAPHILE_COOKIE_DOMAIN}'
+      COOKIE_MAXAGE: '${PGDCP_POSTGRAPHILE_COOKIE_MAXAGE}'
     volumes:
       - 'postgraphileupload-storage:/src/shield/src/uploads'
     extra_hosts:

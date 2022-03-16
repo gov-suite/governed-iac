@@ -104,6 +104,8 @@ export class PostGraphileAnonymousServiceConfig
     };
     this.environment.SCHEMA = "${PGDCP_ANONYMOUS_SCHEMA}";
     this.environment.PORT = 5000;
+    this.environment.DOMAIN = "${PGDCP_POSTGRAPHILE_COOKIE_DOMAIN}";
+    this.environment.COOKIE_MAXAGE = "${PGDCP_POSTGRAPHILE_COOKIE_MAXAGE}";
     ctx.envVars.requiredEnvVar(
       "POSTGRESQLENGINE_USER",
       "pgDCP database user",

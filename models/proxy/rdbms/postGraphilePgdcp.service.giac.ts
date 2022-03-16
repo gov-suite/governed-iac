@@ -107,6 +107,8 @@ export class PostGraphileServiceConfig extends TypicalImmutableServiceConfig
     this.environment.JWKS_URI = "${KEYCLOAK_SERVER_URL}/auth/realms/";
     this.environment.ISSUER = "${KEYCLOAK_SERVER_URL}/auth/realms/";
     this.environment.PORT = 5000;
+    this.environment.DOMAIN = "${PGDCP_POSTGRAPHILE_COOKIE_DOMAIN}";
+    this.environment.COOKIE_MAXAGE = "${PGDCP_POSTGRAPHILE_COOKIE_MAXAGE}";
     ctx.envVars.requiredEnvVar(
       "PGDCP_POSTGRAPHILE_REPO",
       "pgDCP postgraphile shield repository",
